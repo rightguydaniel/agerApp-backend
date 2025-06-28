@@ -4,7 +4,7 @@
   "description": "An express startup kit for a relational database(mysql & postgres) project",
   "main": "dist/app.js",
   "scripts": {
-    "start": "node dist/app.js",
+    "start": "nodemon dist/app.js",
     "dev": "nodemon dist/app.ts",
     "build": "tsc",
     "compile": "tsc -w",
