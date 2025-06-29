@@ -11,9 +11,6 @@ const transporter = nodemailer.createTransport({
     user: `${process.env.MAIL_USERNAME}`,
     pass: `${process.env.MAIL_PASSWORD}`,
   },
-  tls: {
-    ciphers: "SSLv3", // Explicitly enable STARTTLS
-  },
 });
 
 export const sendEmail = async (
