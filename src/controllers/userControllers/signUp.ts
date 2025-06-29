@@ -18,7 +18,7 @@ export const signUp = async (request: Request, response: Response) => {
     password,
   } = request.body;
   try {
-    if (!fullName || !email || phone) {
+    if (!fullName || !email || !phone) {
       sendResponse(response, 400, "Missing fields", null);
       return;
     }
