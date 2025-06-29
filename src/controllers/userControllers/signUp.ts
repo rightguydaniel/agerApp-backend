@@ -61,7 +61,7 @@ export const signUp = async (request: Request, response: Response) => {
 
 /**
  * @swagger
- * /users/signup:
+ * /users/register:
  *   post:
  *     summary: Register a new user
  *     description: This endpoint allows a new user to sign up by providing their details. An OTP will be sent to the user's email for verification.

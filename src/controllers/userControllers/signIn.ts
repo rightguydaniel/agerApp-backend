@@ -42,7 +42,7 @@ export const signIn = async (request: Request, response: Response) => {
 
 /**
  * @swagger
- * /users/signin:
+ * /users/login:
  *   post:
  *     summary: User sign-in
  *     description: Authenticates a user with their email and password, returning a token upon successful login.
