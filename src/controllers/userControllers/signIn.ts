@@ -39,7 +39,7 @@ export const signIn = async (request: Request, response: Response) => {
     });
     return
   } catch (error: any) {
-    console.log(error.message);
+    console.error("Error during user login:", error.message);
     sendResponse(response, 500, "Internal Server Error", error.message);
     return;
   }

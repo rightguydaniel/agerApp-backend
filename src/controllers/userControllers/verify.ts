@@ -15,6 +15,7 @@ export const verifyUser = async (request: Request, response: Response) => {
     sendResponse(response, 200, "OTP verified");
     return;
   } catch (error: any) {
+    console.error("Error during OTP verification:", error.message);
     sendResponse(response, 500, "Internal Server Error", error.message);
     return;
   }

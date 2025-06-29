@@ -54,7 +54,8 @@ export const signUp = async (request: Request, response: Response) => {
     sendResponse(response, 200, `OTP sent to ${email}`);
     return;
   } catch (error: any) {
-    sendResponse(response, 500, "Internale Server Error", error.message);
+    console.error("Error during user registration:", error.message);
+    sendResponse(response, 500, "Internal Server Error", error.message);
     return;
   }
 };
