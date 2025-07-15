@@ -56,7 +56,7 @@ const Tokens_1 = __importDefault(require("../../models/Tokens"));
 const signUp = (request, response) => __awaiter(void 0, void 0, void 0, function* () {
     const { fullName, email, phone, country, businessName, businessCategory, password, } = request.body;
     try {
-        if (!fullName || !email || phone) {
+        if (!fullName || !email || !phone) {
             (0, sendResponse_1.default)(response, 400, "Missing fields", null);
             return;
         }
@@ -89,14 +89,15 @@ const signUp = (request, response) => __awaiter(void 0, void 0, void 0, function
         return;
     }
     catch (error) {
-        (0, sendResponse_1.default)(response, 500, "Internale Server Error", error.message);
+        console.error("Error during user registration:", error.message);
+        (0, sendResponse_1.default)(response, 500, "Internal Server Error", error.message);
         return;
     }
 });
 exports.signUp = signUp;
 /**
  * @swagger
- * /users/signup:
+ * /users/register:
  *   post:
  *     summary: Register a new user
  *     description: This endpoint allows a new user to sign up by providing their details. An OTP will be sent to the user's email for verification.

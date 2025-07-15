@@ -38,7 +38,7 @@ Tokens.init(
   {
     sequelize: database,
     tableName: "Tokens",
-    timestamps: false,
+    timestamps: true,
   }
 );
 

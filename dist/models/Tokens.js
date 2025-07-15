@@ -30,6 +30,6 @@ Tokens.init({
 }, {
     sequelize: database_1.database,
     tableName: "Tokens",
-    timestamps: false,
+    timestamps: true,
 });
 exports.default = Tokens;

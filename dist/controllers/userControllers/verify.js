@@ -29,6 +29,7 @@ const verifyUser = (request, response) => __awaiter(void 0, void 0, void 0, func
         return;
     }
     catch (error) {
+        console.error("Error during OTP verification:", error.message);
         (0, sendResponse_1.default)(response, 500, "Internal Server Error", error.message);
         return;
     }

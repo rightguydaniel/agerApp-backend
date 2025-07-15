@@ -22,9 +22,11 @@ const signIn = (request, response) => __awaiter(void 0, void 0, void 0, function
     try {
         if (!email) {
             (0, sendResponse_1.default)(response, 400, "Email is required to login");
+            return;
         }
         if (!password) {
             (0, sendResponse_1.default)(response, 400, "Password is required to login");
+            return;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
@@ -34,10 +36,12 @@ const signIn = (request, response) => __awaiter(void 0, void 0, void 0, function
         const user = yield Users_1.default.findOne({ where: { email } });
         if (!user) {
             (0, sendResponse_1.default)(response, 400, `Account with ${email} dose not exist`);
+            return;
         }
         const isPasswordValid = yield (0, password_1.verifyPassword)(password, user === null || user === void 0 ? void 0 : user.password);
         if (!isPasswordValid) {
-            return (0, sendResponse_1.default)(response, 400, "Incorrect password");
+            (0, sendResponse_1.default)(response, 400, "Incorrect password");
+            return;
         }
         const data = { id: user === null || user === void 0 ? void 0 : user.id, email: user === null || user === void 0 ? void 0 : user.email, role: user === null || user === void 0 ? void 0 : user.role };
         const token = (0, token_1.generateToken)(data);
@@ -45,9 +49,10 @@ const signIn = (request, response) => __awaiter(void 0, void 0, void 0, function
             user: Object.assign(Object.assign({}, user === null || user === void 0 ? void 0 : user.get()), { password: undefined }),
             token,
         });
+        return;
     }
     catch (error) {
-        console.log(error.message);
+        console.error("Error during user login:", error.message);
         (0, sendResponse_1.default)(response, 500, "Internal Server Error", error.message);
         return;
     }
@@ -55,7 +60,7 @@ const signIn = (request, response) => __awaiter(void 0, void 0, void 0, function
 exports.signIn = signIn;
 /**
  * @swagger
- * /users/signin:
+ * /users/login:
  *   post:
  *     summary: User sign-in
  *     description: Authenticates a user with their email and password, returning a token upon successful login.
