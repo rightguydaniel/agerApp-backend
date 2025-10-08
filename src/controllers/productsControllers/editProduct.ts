@@ -50,10 +50,10 @@ export const editProduct = async (request: JwtPayload, response: Response) => {
 
 /**
  * @swagger
- * /products/{id}:
+ * /products/edit/{id}:
  *   put:
- *     summary: Edit an existing product
- *     description: Updates the details of a product owned by the authenticated user.
+ *     summary: Update a product
+ *     description: Updates details of the specified product owned by the authenticated user.
  *     tags:
  *       - Products
  *     security:
@@ -62,67 +62,38 @@ export const editProduct = async (request: JwtPayload, response: Response) => {
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the product to be updated.
  *         schema:
  *           type: string
- *       - in: body
- *         name: body
- *         required: true
- *         description: The updated product details.
- *         schema:
- *           type: object
- *           properties:
- *             name:
- *               type: string
- *               description: The name of the product.
- *             measurement:
- *               type: string
- *               description: The measurement unit of the product.
- *             quantity:
- *               type: number
- *               description: The quantity of the product.
- *             quantity_type:
- *               type: string
- *               description: The type of quantity (e.g., kg, liters).
- *             price:
- *               type: number
- *               description: The price of the product.
- *             expiry:
- *               type: string
- *               format: date
- *               description: The expiry date of the product.
- *             restock_alert:
- *               type: number
- *               description: The threshold for restock alerts.
+ *         description: Identifier of the product to update.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               measurement:
+ *                 type: string
+ *               quantity:
+ *                 type: number
+ *               quantity_type:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               expiry:
+ *                 type: string
+ *                 format: date
+ *               restock_alert:
+ *                 type: number
  *     responses:
  *       200:
- *         description: Product successfully updated.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Product Updated
+ *         description: Product updated successfully.
  *       400:
- *         description: Bad request, such as missing product ID or product not found.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Product Id is missing
+ *         description: Product ID missing or product not found.
+ *       401:
+ *         description: Authentication token missing or invalid.
  *       500:
- *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Internal Server Error
+ *         description: Server error while updating the product.
  */

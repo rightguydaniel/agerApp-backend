@@ -18,3 +18,15 @@ const index = (request, response) => __awaiter(void 0, void 0, void 0, function*
     });
 });
 exports.index = index;
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: API root
+ *     description: Redirects to the versioned API base path.
+ *     tags:
+ *       - Health
+ *     responses:
+ *       302:
+ *         description: Redirect to /v1.
+ */

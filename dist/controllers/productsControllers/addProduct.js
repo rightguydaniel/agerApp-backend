@@ -20,7 +20,7 @@ const addProduct = (request, response) => __awaiter(void 0, void 0, void 0, func
     var _a;
     const userId = request.user.id;
     try {
-        const { name, measurement, quantity, quantity_type, price, expiry, restock_alert, } = request.body;
+        const { name, measurement, quantity, price, expiry, restock_alert, } = request.body;
         const files = request.files;
         const image = (_a = files["image"]) === null || _a === void 0 ? void 0 : _a[0];
         if (!name || !quantity || !price) {
@@ -34,7 +34,6 @@ const addProduct = (request, response) => __awaiter(void 0, void 0, void 0, func
             name,
             measurement,
             quantity,
-            quantity_type,
             price,
             expiry_date: expiry ? expiry : null,
             restock_alert: restock_alert ? restock_alert : 0,
@@ -51,10 +50,10 @@ const addProduct = (request, response) => __awaiter(void 0, void 0, void 0, func
 exports.addProduct = addProduct;
 /**
  * @swagger
- * /products/add:
+ * /products/create:
  *   post:
- *     summary: Add a new product to the inventory.
- *     description: This endpoint allows users to add a new product to their inventory. The user must provide required fields such as name, quantity, and price. Optional fields include measurement, expiry date, restock alert, and an image file.
+ *     summary: Create a product
+ *     description: Adds a new product to the authenticated user's inventory. Accepts optional metadata and an image upload.
  *     tags:
  *       - Products
  *     security:
@@ -65,72 +64,41 @@ exports.addProduct = addProduct;
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required:
+ *               - name
+ *               - quantity
+ *               - price
  *             properties:
  *               name:
  *                 type: string
- *                 description: Name of the product.
- *                 example: "Milk"
+ *                 description: Product name.
  *               measurement:
  *                 type: string
- *                 description: Measurement unit of the product.
- *                 example: "Liters"
+ *                 description: Measurement descriptor (e.g. kg, liters).
  *               quantity:
  *                 type: number
- *                 description: Quantity of the product.
- *                 example: 10
- *               quantity_type:
- *                 type: string
- *                 description: Type of quantity (e.g., units, kg, liters).
- *                 example: "Liters"
+ *                 description: Quantity available.
  *               price:
  *                 type: number
- *                 description: Price of the product.
- *                 example: 5.99
+ *                 description: Unit price for the product.
  *               expiry:
  *                 type: string
  *                 format: date
- *                 description: Expiry date of the product.
- *                 example: "2023-12-31"
+ *                 description: Optional expiry date.
  *               restock_alert:
  *                 type: number
- *                 description: Restock alert threshold.
- *                 example: 5
+ *                 description: Threshold to trigger restock alerts.
  *               image:
  *                 type: string
  *                 format: binary
- *                 description: Image file of the product.
+ *                 description: Optional product image upload.
  *     responses:
  *       200:
- *         description: Product successfully added.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Product Added"
+ *         description: Product created successfully.
  *       400:
  *         description: Missing required fields.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Missing fields"
+ *       401:
+ *         description: Authentication token missing or invalid.
  *       500:
- *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "Internal Server Error"
- *                 error:
- *                   type: string
- *                   example: "Error details"
+ *         description: Server error while creating the product.
  */
