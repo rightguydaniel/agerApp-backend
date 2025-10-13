@@ -35,10 +35,10 @@ export const deleteProduct = async (
 
 /**
  * @swagger
- * /products/{id}:
+ * /products/delete/{id}:
  *   delete:
  *     summary: Delete a product
- *     description: Deletes a product owned by the authenticated user based on the provided product ID.
+ *     description: Removes the specified product owned by the authenticated user from the inventory.
  *     tags:
  *       - Products
  *     security:
@@ -47,51 +47,16 @@ export const deleteProduct = async (
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the product to delete.
  *         schema:
  *           type: string
+ *         description: Identifier of the product to delete.
  *     responses:
  *       200:
- *         description: Product successfully deleted.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Product Deleted
+ *         description: Product deleted successfully.
  *       400:
- *         description: Bad request due to missing or invalid product ID.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Product Id is missing
- *       404:
- *         description: Product not found.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Product not found
+ *         description: Product ID missing or product not found.
+ *       401:
+ *         description: Authentication token missing or invalid.
  *       500:
- *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Internal Server Error
- *                 error:
- *                   type: string
- *                   example: Detailed error message
+ *         description: Server error while deleting the product.
  */
