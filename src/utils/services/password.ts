@@ -1,19 +1,15 @@
-import * as argon2 from 'argon2';
+import bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 12;
 
 /**
- * Hash a password using Argon2
+ * Hash a password using bcrypt
  * @param plainPassword The plain text password to hash
  * @returns Promise that resolves to the hashed password
  */
 export async function hashPassword(plainPassword: string): Promise<string> {
   try {
-    return await argon2.hash(plainPassword, {
-      type: argon2.argon2id, // Recommended hybrid version
-      memoryCost: 65536,    // Memory usage in KiB (64MB)
-      timeCost: 3,          // Number of iterations
-      parallelism: 1,       // Number of parallel threads
-      hashLength: 32        // Output length in bytes
-    });
+    return await bcrypt.hash(plainPassword, SALT_ROUNDS);
   } catch (err) {
     throw new Error('Failed to hash password');
   }
@@ -21,8 +17,8 @@ export async function hashPassword(plainPassword: string): Promise<string> {
 
 /**
  * Verify a password against a stored hash
- * @param hashedPassword The stored hashed password
  * @param plainPassword The plain text password to verify
+ * @param hashedPassword The stored hashed password
  * @returns Promise that resolves to true if passwords match
  */
 export async function verifyPassword(
@@ -30,7 +26,7 @@ export async function verifyPassword(
   hashedPassword: string
 ): Promise<boolean> {
   try {
-    return await argon2.verify(hashedPassword, plainPassword);
+    return await bcrypt.compare(plainPassword, hashedPassword);
   } catch (err) {
     console.error('Password verification error:', err);
     return false;
