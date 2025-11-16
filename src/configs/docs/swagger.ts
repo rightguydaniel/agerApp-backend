@@ -9,14 +9,14 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "CPlynk API Documentation",
+      title: "AgerApp API Documentation",
       version: "2.0.0",
       description: "This is the API documentation for the CPlynk API.",
     },
     servers: [
       {
-        url: `${process.env.APP_DOMAIN}/v1`,
-        description: `${process.env.APP_DOMAIN?.includes("http://localhost") ? "Development" : "Production"} server`,
+        url: `${process.env.API_URL}/v1`,
+        description: `${process.env.API_URL?.includes("http://localhost") ? "Development" : "Production"} server`,
       },
     ],
   },
