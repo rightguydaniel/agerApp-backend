@@ -13,6 +13,20 @@ const options: swaggerJsdoc.Options = {
       version: "2.0.0",
       description: "This is the API documentation for the CPlynk API.",
     },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
     servers: [
       {
         url: `${process.env.API_URL}/v1`,
