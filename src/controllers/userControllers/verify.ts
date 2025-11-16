@@ -7,7 +7,7 @@ export const verifyUser = async (request: Request, response: Response) => {
   const { email, otp } = request.body;
   try {
     const otpExist = await Tokens.findOne({ where: { email, token: otp } });
-    if (otpExist) {
+    if (!otpExist) {
       sendResponse(response, 400, "Incorrect OTP");
       return;
     }
