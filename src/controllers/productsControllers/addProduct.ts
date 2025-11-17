@@ -85,9 +85,11 @@ export const addProduct = async (request: JwtPayload, response: Response) => {
  *                 type: number
  *                 description: Threshold to trigger restock alerts.
  *               image:
- *                 type: string
- *                 format: binary
- *                 description: Optional product image upload.
+ *                 type: array
+ *                 description: Optional product image uploads (send one or more files under the `image` field).
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *     responses:
  *       200:
  *         description: Product created successfully.
