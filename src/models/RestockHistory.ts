@@ -7,6 +7,8 @@ export interface RestockHistoryAttributes {
   owner_id: string;
   restocked_by: string;
   quantity: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 type RestockHistoryCreationAttributes = Optional<
