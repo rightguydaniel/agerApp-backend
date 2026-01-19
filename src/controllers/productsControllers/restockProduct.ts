@@ -2,6 +2,7 @@ import { Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import sendResponse from "../../utils/http/sendResponse";
 import Products from "../../models/Products";
+import RestockHistory from "../../models/RestockHistory";
 
 export const restockProduct = async (
   request: JwtPayload,
@@ -41,6 +42,13 @@ export const restockProduct = async (
       },
       { where: { owner_id: userId, id: productId } }
     );
+
+    await RestockHistory.create({
+      product_id: productId,
+      owner_id: userId,
+      restocked_by: userId,
+      quantity: Number(quantity),
+    });
 
     sendResponse(response, 200, "Product restocked successfully");
     return;
@@ -83,10 +91,78 @@ export const restockProduct = async (
  *     responses:
  *       200:
  *         description: Product restocked successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Product restocked successfully
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       400:
  *         description: Product ID missing, product not found, or invalid quantity.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Invalid restock quantity
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       401:
  *         description: Authentication token missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       500:
  *         description: Server error while creating the product.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: string
+ *                   example: Error details here
  */

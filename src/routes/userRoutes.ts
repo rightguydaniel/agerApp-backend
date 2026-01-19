@@ -4,6 +4,14 @@ import { signIn } from "../controllers/userControllers/signIn";
 import { getProfile } from "../controllers/userControllers/getProfile";
 import { verifyUser } from "../controllers/userControllers/verify";
 import { createAdmin } from "../controllers/userControllers/createAdmin";
+import { searchUsers } from "../controllers/userControllers/searchUsers";
+import { addUserSocial } from "../controllers/userControllers/addUserSocial";
+import { editContact } from "../controllers/userControllers/editContact";
+import { updateBankDetails } from "../controllers/userControllers/updateBankDetails";
+import { updateUserSettings } from "../controllers/userControllers/updateUserSettings";
+import { updateBusinessName } from "../controllers/userControllers/updateBusinessName";
+import { getRecentOverview } from "../controllers/userControllers/getRecentOverview";
+import { getBusinesses } from "../controllers/userControllers/getBusinesses";
 import { userAuth } from "../middleware/userAuth";
 
 const userRoutes = express.Router();
@@ -12,5 +20,13 @@ userRoutes.post("/login", signIn);
 userRoutes.post("/verify", verifyUser);
 userRoutes.post("/admin/create", createAdmin);
 userRoutes.get("/profile", userAuth, getProfile);
+userRoutes.get("/search", userAuth, searchUsers);
+userRoutes.post("/socials", userAuth, addUserSocial);
+userRoutes.patch("/contact", userAuth, editContact);
+userRoutes.post("/bank-details", userAuth, updateBankDetails);
+userRoutes.put("/settings", userAuth, updateUserSettings);
+userRoutes.patch("/business-name", userAuth, updateBusinessName);
+userRoutes.get("/whats-new", userAuth, getRecentOverview);
+userRoutes.get("/businesses", userAuth, getBusinesses);
 
 export default userRoutes;

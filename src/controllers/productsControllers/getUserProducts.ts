@@ -26,7 +26,6 @@ export const getUserProducts = async (
     const { rows, count } = await Products.findAndCountAll({
       where: whereClause,
       order: [["createdAt", order === "asc" ? "ASC" : "DESC"]],
-      attributes: { exclude: ["image"] },
       limit,
       offset,
     });
@@ -97,9 +96,15 @@ export const getUserProducts = async (
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
  *                 message:
  *                   type: string
  *                   example: User products fetched
+ *                 error:
+ *                   type: boolean
+ *                   example: false
  *                 data:
  *                   type: object
  *                   properties:
@@ -110,36 +115,104 @@ export const getUserProducts = async (
  *                         properties:
  *                           id:
  *                             type: string
+ *                             example: 2f1b2c3d-4e5f-6789-0abc-def123456789
  *                           owner_id:
  *                             type: string
+ *                             example: 9a1b2c3d-4e5f-6789-0abc-def123456789
+ *                           image:
+ *                             type: array
+ *                             nullable: true
+ *                             items:
+ *                               type: string
+ *                             example:
+ *                               - http://localhost:3030/uploads/products/1700000000000-123456789.png
  *                           name:
  *                             type: string
+ *                             example: Fresh Apples
  *                           measurement:
  *                             type: string
+ *                             nullable: true
+ *                             example: kg
  *                           quantity:
  *                             type: number
+ *                             example: 10
+ *                           quantity_type:
+ *                             type: string
+ *                             nullable: true
+ *                             example: crate
  *                           price:
  *                             type: number
+ *                             example: 2500
  *                           expiry_date:
  *                             type: string
  *                             format: date-time
+ *                             nullable: true
+ *                             example: 2024-12-31T00:00:00.000Z
  *                           restock_alert:
  *                             type: number
+ *                             example: 2
  *                           number_of_restocks:
  *                             type: number
+ *                             example: 1
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2024-01-15T10:00:00.000Z
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2024-01-16T12:00:00.000Z
  *                     pagination:
  *                       type: object
  *                       properties:
  *                         total:
  *                           type: integer
+ *                           example: 25
  *                         page:
  *                           type: integer
+ *                           example: 1
  *                         limit:
  *                           type: integer
+ *                           example: 10
  *                         totalPages:
  *                           type: integer
+ *                           example: 3
  *       401:
  *         description: Authentication token missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       500:
  *         description: Server error while creating the product.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: string
+ *                   example: Error details here
  */

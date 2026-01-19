@@ -13,6 +13,8 @@ export const signUp = async (request: Request, response: Response) => {
     email,
     phone,
     country,
+    state,
+    address,
     businessName,
     businessCategory,
     password,
@@ -35,6 +37,8 @@ export const signUp = async (request: Request, response: Response) => {
       phone,
       role: userRole.USER,
       country,
+      state,
+      address,
       business_name: businessName,
       business_category: businessCategory,
       password: hashedPassword,
@@ -96,6 +100,12 @@ export const signUp = async (request: Request, response: Response) => {
  *               country:
  *                 type: string
  *                 description: The country of the user.
+ *               state:
+ *                 type: string
+ *                 description: The state of the user.
+ *               address:
+ *                 type: string
+ *                 description: The user's address.
  *               businessName:
  *                 type: string
  *                 description: The name of the user's business.
@@ -120,6 +130,12 @@ export const signUp = async (request: Request, response: Response) => {
  *                 message:
  *                   type: string
  *                   example: OTP sent to user@example.com
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       400:
  *         description: Missing or invalid fields in the request body.
  *         content:
@@ -133,6 +149,12 @@ export const signUp = async (request: Request, response: Response) => {
  *                 message:
  *                   type: string
  *                   example: Missing fields
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       500:
  *         description: Internal server error.
  *         content:
@@ -146,4 +168,10 @@ export const signUp = async (request: Request, response: Response) => {
  *                 message:
  *                   type: string
  *                   example: Internal Server Error
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: string
+ *                   example: Database error
  */

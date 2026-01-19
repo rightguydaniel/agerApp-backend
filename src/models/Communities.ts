@@ -8,7 +8,7 @@ export interface CommunitiesAttributes {
   country?: string;
   description?: string;
   whatsapp_link?: string;
-  picture?: Buffer | null;
+  picture?: string | null;
   phone_number?: string;
   email?: string;
   instagram_link?: string;
@@ -40,7 +40,7 @@ export class Communities
   public country!: string;
   public description!: string;
   public whatsapp_link!: string;
-  public picture!: Buffer | null;
+  public picture!: string | null;
   public phone_number!: string;
   public email!: string;
   public instagram_link!: string;
@@ -77,7 +77,7 @@ Communities.init(
       allowNull: true,
     },
     picture: {
-      type: DataTypes.BLOB("long"),
+      type: DataTypes.STRING,
       allowNull: true,
       defaultValue: null,
     },
@@ -113,4 +113,3 @@ Communities.init(
 );
 
 export default Communities;
-

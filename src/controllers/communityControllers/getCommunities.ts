@@ -24,7 +24,6 @@ export const getCommunities = async (
     const { rows, count } = await Communities.findAndCountAll({
       where: whereClause,
       order: [["createdAt", order === "asc" ? "ASC" : "DESC"]],
-      attributes: { exclude: ["picture"] },
       limit: perPage,
       offset,
     });
@@ -95,9 +94,15 @@ export const getCommunities = async (
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
  *                 message:
  *                   type: string
  *                   example: Communities fetched
+ *                 error:
+ *                   type: boolean
+ *                   example: false
  *                 data:
  *                   type: object
  *                   properties:
@@ -108,37 +113,72 @@ export const getCommunities = async (
  *                         properties:
  *                           id:
  *                             type: string
+ *                             example: 2f1b2c3d-4e5f-6789-0abc-def123456789
  *                           name:
  *                             type: string
+ *                             example: Lagos Entrepreneurs
  *                           state:
  *                             type: string
+ *                             nullable: true
+ *                             example: Lagos
  *                           country:
  *                             type: string
+ *                             nullable: true
+ *                             example: Nigeria
  *                           description:
  *                             type: string
+ *                             nullable: true
+ *                             example: A community for founders and builders.
  *                           whatsapp_link:
  *                             type: string
+ *                             nullable: true
+ *                             example: https://chat.whatsapp.com/example
  *                           phone_number:
  *                             type: string
+ *                             nullable: true
+ *                             example: "+2348012345678"
  *                           email:
  *                             type: string
+ *                             nullable: true
+ *                             example: hello@cplynk.com
  *                           instagram_link:
  *                             type: string
+ *                             nullable: true
+ *                             example: https://instagram.com/cplynk
  *                           facebook_link:
  *                             type: string
+ *                             nullable: true
+ *                             example: https://facebook.com/cplynk
  *                           created_by:
  *                             type: string
+ *                             example: 9a1b2c3d-4e5f-6789-0abc-def123456789
+ *                           picture:
+ *                             type: string
+ *                             nullable: true
+ *                             example: http://localhost:3030/uploads/communities/1700000000000-123456789.png
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2024-01-15T10:00:00.000Z
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                             example: 2024-01-16T12:00:00.000Z
  *                     pagination:
  *                       type: object
  *                       properties:
  *                         total:
  *                           type: integer
+ *                           example: 25
  *                         page:
  *                           type: integer
+ *                           example: 1
  *                         perPage:
  *                           type: integer
+ *                           example: 10
  *                         totalPages:
  *                           type: integer
+ *                           example: 3
  *       401:
  *         description: Authentication token missing or invalid.
  *       500:

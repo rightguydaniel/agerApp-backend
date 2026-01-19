@@ -36,6 +36,10 @@ CommunityMembers.init(
     user_id: {
       type: DataTypes.UUID,
       allowNull: false,
+      references: {
+        model: "Users",
+        key: "id",
+      },
     },
   },
   {
@@ -46,4 +50,3 @@ CommunityMembers.init(
 );
 
 export default CommunityMembers;
-

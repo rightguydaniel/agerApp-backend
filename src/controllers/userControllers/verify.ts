@@ -51,9 +51,18 @@ export const verifyUser = async (request: Request, response: Response) => {
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
  *                 message:
  *                   type: string
  *                   example: "OTP verified"
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       400:
  *         description: Incorrect OTP provided.
  *         content:
@@ -61,9 +70,18 @@ export const verifyUser = async (request: Request, response: Response) => {
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
  *                 message:
  *                   type: string
  *                   example: "Incorrect OTP"
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       500:
  *         description: Internal Server Error.
  *         content:
@@ -71,10 +89,16 @@ export const verifyUser = async (request: Request, response: Response) => {
  *             schema:
  *               type: object
  *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
  *                 message:
  *                   type: string
  *                   example: "Internal Server Error"
  *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
  *                   type: string
  *                   example: "Error details here"
  */

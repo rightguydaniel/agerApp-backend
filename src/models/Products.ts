@@ -4,7 +4,7 @@ import { database } from "../configs/database/database";
 export interface ProductsAttributes {
   id: string;
   owner_id: string;
-  image: Buffer | null;
+  image: string[] | null;
   name: string;
   measurement: string;
   quantity: number;
@@ -32,7 +32,7 @@ Products.init(
       allowNull: false,
     },
     image: {
-      type: DataTypes.BLOB("long"),
+      type: DataTypes.JSON,
       allowNull: true,
       defaultValue: null,
     },

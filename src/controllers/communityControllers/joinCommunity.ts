@@ -73,10 +73,95 @@ export const joinCommunity = async (
  *     responses:
  *       200:
  *         description: User joined the community successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Joined community successfully
+ *                 error:
+ *                   type: boolean
+ *                   example: false
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: 2f1b2c3d-4e5f-6789-0abc-def123456789
+ *                     community_id:
+ *                       type: string
+ *                       example: 9a1b2c3d-4e5f-6789-0abc-def123456789
+ *                     user_id:
+ *                       type: string
+ *                       example: 1a2b3c4d-5e6f-7890-abcd-ef1234567890
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2024-01-15T10:00:00.000Z
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: 2024-01-15T10:00:00.000Z
  *       400:
  *         description: Community ID missing, community not found, user not found, or already a member.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: User already a member of this community
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       401:
  *         description: Authentication token missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
  *       500:
  *         description: Server error while joining the community.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Internal Server Error
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: string
+ *                   example: Error details here
  */

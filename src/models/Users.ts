@@ -6,6 +6,20 @@ export enum userRole {
   USER = "user",
 }
 
+export enum userSocial {
+  INSTAGRAM = "INSTAGRAM",
+  FACEBOOK = "FACEBOOK",
+  LINKEDIN = "LINKEDIN",
+  DISCORD = "DISCORD",
+  TELEGRAM = "TELEGRAM",
+  WHATSAPP = "WHATSAPP",
+}
+
+export interface UserSocialLink {
+  social: userSocial;
+  link: string;
+}
+
 export interface UsersAttributes {
   id: string;
   full_name: string;
@@ -15,9 +29,12 @@ export interface UsersAttributes {
   picture?: string;
   role: string;
   country?: string;
+  state?: string;
+  address?: string;
   business_name: string;
   business_category: string;
   password: string;
+  socials?: UserSocialLink[] | null;
   isVerified: boolean;
   isBlocked?: Date | null;
 }
@@ -71,6 +88,16 @@ Users.init(
       allowNull: true,
       defaultValue: null,
     },
+    state: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
     business_name: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -84,6 +111,11 @@ Users.init(
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    socials: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null,
     },
     isVerified: {
       type: DataTypes.BOOLEAN,
