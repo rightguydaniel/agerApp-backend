@@ -12,7 +12,11 @@ import { updateUserSettings } from "../controllers/userControllers/updateUserSet
 import { updateBusinessName } from "../controllers/userControllers/updateBusinessName";
 import { getRecentOverview } from "../controllers/userControllers/getRecentOverview";
 import { getBusinesses } from "../controllers/userControllers/getBusinesses";
+import { getBankDetails } from "../controllers/userControllers/getBankDetails";
+import { getUserSettings } from "../controllers/userControllers/getUserSettings";
+import { updateUserPhoto } from "../controllers/userControllers/updateUserPhoto";
 import { userAuth } from "../middleware/userAuth";
+import userUpload from "../middleware/userUpload";
 
 const userRoutes = express.Router();
 userRoutes.post("/register", signUp);
@@ -23,8 +27,11 @@ userRoutes.get("/profile", userAuth, getProfile);
 userRoutes.get("/search", userAuth, searchUsers);
 userRoutes.post("/socials", userAuth, addUserSocial);
 userRoutes.patch("/contact", userAuth, editContact);
+userRoutes.patch("/photo", userAuth, userUpload.single("picture"), updateUserPhoto);
 userRoutes.post("/bank-details", userAuth, updateBankDetails);
+userRoutes.get("/bank-details", userAuth, getBankDetails);
 userRoutes.put("/settings", userAuth, updateUserSettings);
+userRoutes.get("/settings", userAuth, getUserSettings);
 userRoutes.patch("/business-name", userAuth, updateBusinessName);
 userRoutes.get("/whats-new", userAuth, getRecentOverview);
 userRoutes.get("/businesses", userAuth, getBusinesses);
