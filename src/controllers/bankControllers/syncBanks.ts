@@ -62,7 +62,7 @@ export const syncBanks = async (_request: Request, response: Response) => {
  * /banks/sync:
  *   post:
  *     summary: Sync banks from Paystack
- *     description: Fetches banks from Paystack and upserts them into the local database.
+ *     description: Fetches banks from Paystack and upserts them into the local database if they are missing.
  *     tags:
  *       - Banks
  *     responses:
