@@ -32,22 +32,38 @@ export const addUserSocial = async (
     }
 
     let existingSocials: { social: userSocial; link: string }[] = [];
-    if (Array.isArray(user.socials)) {
-      existingSocials = user.socials;
-    } else if (user.socials && typeof user.socials === "object") {
-      const socialsValue = user.socials as Record<string, any>;
-      if ("social" in socialsValue && "link" in socialsValue) {
-        const socialValue = String(socialsValue.social || "").toUpperCase();
-        if (Object.values(userSocial).includes(socialValue as userSocial)) {
-          existingSocials = [
-            {
+    const parseSocialsValue = (value: unknown) => {
+      if (Array.isArray(value)) {
+        return value
+          .map((entry) => {
+            const socialValue = String(entry?.social || "").toUpperCase();
+            if (!Object.values(userSocial).includes(socialValue as userSocial)) {
+              return null;
+            }
+            return {
               social: socialValue as userSocial,
-              link: String(socialsValue.link || ""),
-            },
-          ];
+              link: String(entry?.link || ""),
+            };
+          })
+          .filter(Boolean) as { social: userSocial; link: string }[];
+      }
+
+      if (value && typeof value === "object") {
+        const socialsValue = value as Record<string, any>;
+        if ("social" in socialsValue && "link" in socialsValue) {
+          const socialValue = String(socialsValue.social || "").toUpperCase();
+          if (Object.values(userSocial).includes(socialValue as userSocial)) {
+            return [
+              {
+                social: socialValue as userSocial,
+                link: String(socialsValue.link || ""),
+              },
+            ];
+          }
+          return [];
         }
-      } else {
-        existingSocials = Object.entries(socialsValue)
+
+        return Object.entries(socialsValue)
           .map(([socialKey, socialLink]) => {
             const socialValue = String(socialKey || "").toUpperCase();
             if (!Object.values(userSocial).includes(socialValue as userSocial)) {
@@ -60,6 +76,20 @@ export const addUserSocial = async (
           })
           .filter(Boolean) as { social: userSocial; link: string }[];
       }
+
+      return [];
+    };
+
+    if (Array.isArray(user.socials) || typeof user.socials === "object") {
+      existingSocials = parseSocialsValue(user.socials);
+    } else if (typeof user.socials === "string") {
+      try {
+        existingSocials = parseSocialsValue(JSON.parse(user.socials));
+      } catch {
+        existingSocials = [];
+      }
+    } else {
+      existingSocials = [];
     }
 
     const nextSocials = [
