@@ -31,32 +31,40 @@ export const addUserSocial = async (
       return;
     }
 
-    let existingSocials: { social: string; link: string }[] = [];
+    let existingSocials: { social: userSocial; link: string }[] = [];
     if (Array.isArray(user.socials)) {
       existingSocials = user.socials;
     } else if (user.socials && typeof user.socials === "object") {
       const socialsValue = user.socials as Record<string, any>;
       if ("social" in socialsValue && "link" in socialsValue) {
-        existingSocials = [
-          {
-            social: String(socialsValue.social || "").toUpperCase(),
-            link: String(socialsValue.link || ""),
-          },
-        ];
+        const socialValue = String(socialsValue.social || "").toUpperCase();
+        if (Object.values(userSocial).includes(socialValue as userSocial)) {
+          existingSocials = [
+            {
+              social: socialValue as userSocial,
+              link: String(socialsValue.link || ""),
+            },
+          ];
+        }
       } else {
-        existingSocials = Object.entries(socialsValue).map(
-          ([socialKey, socialLink]) => ({
-            social: String(socialKey || "").toUpperCase(),
-            link: String(socialLink || ""),
+        existingSocials = Object.entries(socialsValue)
+          .map(([socialKey, socialLink]) => {
+            const socialValue = String(socialKey || "").toUpperCase();
+            if (!Object.values(userSocial).includes(socialValue as userSocial)) {
+              return null;
+            }
+            return {
+              social: socialValue as userSocial,
+              link: String(socialLink || ""),
+            };
           })
-        );
+          .filter(Boolean) as { social: userSocial; link: string }[];
       }
     }
 
     const nextSocials = [
       ...existingSocials.filter(
-        (entry) =>
-          String(entry.social || "").toUpperCase() !== normalizedSocial
+        (entry) => entry.social !== (normalizedSocial as userSocial)
       ),
       { social: normalizedSocial as userSocial, link },
     ];
