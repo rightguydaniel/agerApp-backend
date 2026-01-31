@@ -2,6 +2,8 @@ import { Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import sendResponse from "../../utils/http/sendResponse";
 import RestockHistory from "../../models/RestockHistory";
+import Products from "../../models/Products";
+import { Op } from "sequelize";
 
 export const getRestockHistory = async (
   request: JwtPayload,
@@ -15,7 +17,35 @@ export const getRestockHistory = async (
       order: [["createdAt", "DESC"]],
     });
 
-    sendResponse(response, 200, "Restock history fetched", history);
+    const productIds = Array.from(
+      new Set(history.map((item) => item.product_id).filter(Boolean))
+    );
+
+    const products = productIds.length
+      ? await Products.findAll({
+          where: { id: { [Op.in]: productIds }, owner_id: userId },
+          attributes: ["id", "name", "measurement"],
+        })
+      : [];
+
+    const productLookup = new Map(
+      products.map((product) => [
+        product.id,
+        { name: product.name, measurement: product.measurement },
+      ])
+    );
+
+    const responseItems = history.map((item) => {
+      const plainItem = item.get({ plain: true }) as any;
+      const productMeta = productLookup.get(plainItem.product_id);
+      return {
+        ...plainItem,
+        product_name: productMeta?.name ?? null,
+        product_measurement: productMeta?.measurement ?? null,
+      };
+    });
+
+    sendResponse(response, 200, "Restock history fetched", responseItems);
     return;
   } catch (error: any) {
     console.error("Error in getRestockHistory:", error.message);
@@ -71,6 +101,14 @@ export const getRestockHistory = async (
  *                       quantity:
  *                         type: number
  *                         example: 5
+ *                       product_name:
+ *                         type: string
+ *                         nullable: true
+ *                         example: Maize
+ *                       product_measurement:
+ *                         type: string
+ *                         nullable: true
+ *                         example: bags
  *                       createdAt:
  *                         type: string
  *                         format: date-time
