@@ -13,6 +13,7 @@ export enum userSocial {
   DISCORD = "DISCORD",
   TELEGRAM = "TELEGRAM",
   WHATSAPP = "WHATSAPP",
+  X="X",
 }
 
 export interface UserSocialLink {

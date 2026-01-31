@@ -31,12 +31,32 @@ export const addUserSocial = async (
       return;
     }
 
-    const existingSocials = Array.isArray(user.socials)
-      ? user.socials
-      : [];
+    let existingSocials: { social: string; link: string }[] = [];
+    if (Array.isArray(user.socials)) {
+      existingSocials = user.socials;
+    } else if (user.socials && typeof user.socials === "object") {
+      const socialsValue = user.socials as Record<string, any>;
+      if ("social" in socialsValue && "link" in socialsValue) {
+        existingSocials = [
+          {
+            social: String(socialsValue.social || "").toUpperCase(),
+            link: String(socialsValue.link || ""),
+          },
+        ];
+      } else {
+        existingSocials = Object.entries(socialsValue).map(
+          ([socialKey, socialLink]) => ({
+            social: String(socialKey || "").toUpperCase(),
+            link: String(socialLink || ""),
+          })
+        );
+      }
+    }
+
     const nextSocials = [
       ...existingSocials.filter(
-        (entry) => entry.social !== normalizedSocial
+        (entry) =>
+          String(entry.social || "").toUpperCase() !== normalizedSocial
       ),
       { social: normalizedSocial as userSocial, link },
     ];
