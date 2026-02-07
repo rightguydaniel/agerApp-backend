@@ -18,12 +18,38 @@ export const sendEmail = async (
   text?: string,
   html?: string
 ) => {
+  const logoUrl = "https://agerapp.com.ng/assets/agerApp-logo-G3s7oUoB.png";
+  const bodyHtml = html
+    ? html
+    : text
+      ? `<p style="margin:0 0 16px 0;line-height:1.6;color:#1E1E1E;">${text
+          .replace(/\n/g, "<br/>")
+          .trim()}</p>`
+      : "";
+
+  const brandedHtml = `
+    <div style="background:#F8F8F8;padding:32px 16px;">
+      <div style="max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #E5EEE6;">
+        <div style="background:#2E6130;padding:20px;text-align:center;">
+          <img src="${logoUrl}" alt="AgerApp" style="height:48px;width:auto;display:inline-block;" />
+        </div>
+        <div style="padding:28px 24px;">
+          <h1 style="margin:0 0 12px 0;font-size:22px;color:#2E6130;">${subject}</h1>
+          ${bodyHtml}
+        </div>
+        <div style="padding:16px 24px;background:#F1F6F2;color:#2E6130;font-size:12px;text-align:center;">
+          AgerApp • Grow smarter, farm better
+        </div>
+      </div>
+    </div>
+  `;
+
   const mailOptions = {
     from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_USERNAME}>`,
     to,
     subject,
     text,
-    html,
+    html: brandedHtml,
   };
 
   try {
