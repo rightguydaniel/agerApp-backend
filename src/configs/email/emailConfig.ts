@@ -38,6 +38,13 @@ export const sendEmail = async (
           ${bodyHtml}
         </div>
         <div style="padding:16px 24px;background:#F1F6F2;color:#2E6130;font-size:12px;text-align:center;">
+          <div style="margin-bottom:8px;">
+            <a href="https://www.instagram.com/agerapp/" style="color:#2E6130;text-decoration:none;margin:0 6px;">Instagram</a>
+            <a href="https://www.tiktok.com/@agerapp" style="color:#2E6130;text-decoration:none;margin:0 6px;">TikTok</a>
+            <a href="https://www.linkedin.com/company/agerapp/" style="color:#2E6130;text-decoration:none;margin:0 6px;">LinkedIn</a>
+            <a href="https://x.com/agerapps" style="color:#2E6130;text-decoration:none;margin:0 6px;">Twitter</a>
+            <a href="mailto:info@agerapp.com.ng" style="color:#2E6130;text-decoration:none;margin:0 6px;">Email</a>
+          </div>
           AgerApp • Grow smarter, farm better
         </div>
       </div>
