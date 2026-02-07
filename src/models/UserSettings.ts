@@ -45,7 +45,7 @@ UserSettings.init(
     currency: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: null,
+      defaultValue: "NGN",
     },
     notification: {
       type: DataTypes.BOOLEAN,
@@ -55,17 +55,17 @@ UserSettings.init(
     taxes_rate: {
       type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: null,
+      defaultValue: 7.5,
     },
     taxes_enabled: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false,
+      defaultValue: true,
     },
     language: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: null,
+      defaultValue: "ENGLISH",
     },
   },
   {

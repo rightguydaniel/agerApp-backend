@@ -9,6 +9,7 @@ import Tokens from "../../models/Tokens";
 import DeletedAccounts from "../../models/DeletedAccounts";
 import { hashEmail } from "../../utils/services/hash";
 import { Op } from "sequelize";
+import UserSettings from "../../models/UserSettings";
 
 export const signUp = async (request: Request, response: Response) => {
   const {
@@ -61,6 +62,15 @@ export const signUp = async (request: Request, response: Response) => {
       business_category: businessCategory,
       password: hashedPassword,
       isVerified: false,
+    });
+    await UserSettings.create({
+      id: v4(),
+      user_id: newUser.id,
+      currency: "NGN",
+      notification: true,
+      taxes_rate: 7.5,
+      taxes_enabled: true,
+      language: "ENGLISH",
     });
     const otp = generateOtp();
     await Tokens.create({
