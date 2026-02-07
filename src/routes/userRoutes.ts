@@ -18,8 +18,10 @@ import { updateUserPhoto } from "../controllers/userControllers/updateUserPhoto"
 import { requestAccountDeletion } from "../controllers/userControllers/requestAccountDeletion";
 import { confirmAccountDeletion } from "../controllers/userControllers/confirmAccountDeletion";
 import { resendSignupOtp } from "../controllers/userControllers/resendSignupOtp";
+import { setDefaultUserSettings } from "../controllers/userControllers/setDefaultUserSettings";
 import { userAuth } from "../middleware/userAuth";
 import userUpload from "../middleware/userUpload";
+import { requireAdmin } from "../middleware/requireAdmin";
 
 const userRoutes = express.Router();
 userRoutes.post("/register", signUp);
@@ -41,5 +43,11 @@ userRoutes.get("/whats-new", userAuth, getRecentOverview);
 userRoutes.get("/businesses", userAuth, getBusinesses);
 userRoutes.post("/delete-account/request", requestAccountDeletion);
 userRoutes.post("/delete-account/confirm", confirmAccountDeletion);
+userRoutes.post(
+  "/settings/defaults",
+  userAuth,
+  requireAdmin,
+  setDefaultUserSettings
+);
 
 export default userRoutes;
