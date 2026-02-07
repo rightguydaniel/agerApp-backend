@@ -15,6 +15,9 @@ import { getBusinesses } from "../controllers/userControllers/getBusinesses";
 import { getBankDetails } from "../controllers/userControllers/getBankDetails";
 import { getUserSettings } from "../controllers/userControllers/getUserSettings";
 import { updateUserPhoto } from "../controllers/userControllers/updateUserPhoto";
+import { requestAccountDeletion } from "../controllers/userControllers/requestAccountDeletion";
+import { confirmAccountDeletion } from "../controllers/userControllers/confirmAccountDeletion";
+import { resendSignupOtp } from "../controllers/userControllers/resendSignupOtp";
 import { userAuth } from "../middleware/userAuth";
 import userUpload from "../middleware/userUpload";
 
@@ -22,6 +25,7 @@ const userRoutes = express.Router();
 userRoutes.post("/register", signUp);
 userRoutes.post("/login", signIn);
 userRoutes.post("/verify", verifyUser);
+userRoutes.post("/resend-otp", resendSignupOtp);
 userRoutes.post("/admin/create", createAdmin);
 userRoutes.get("/profile", userAuth, getProfile);
 userRoutes.get("/search", userAuth, searchUsers);
@@ -35,5 +39,7 @@ userRoutes.get("/settings", userAuth, getUserSettings);
 userRoutes.patch("/business-name", userAuth, updateBusinessName);
 userRoutes.get("/whats-new", userAuth, getRecentOverview);
 userRoutes.get("/businesses", userAuth, getBusinesses);
+userRoutes.post("/delete-account/request", requestAccountDeletion);
+userRoutes.post("/delete-account/confirm", confirmAccountDeletion);
 
 export default userRoutes;

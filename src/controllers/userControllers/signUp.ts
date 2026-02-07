@@ -6,6 +6,9 @@ import { hashPassword } from "../../utils/services/password";
 import { sendEmail } from "../../configs/email/emailConfig";
 import { generateOtp } from "../../utils/services/otp";
 import Tokens from "../../models/Tokens";
+import DeletedAccounts from "../../models/DeletedAccounts";
+import { hashEmail } from "../../utils/services/hash";
+import { Op } from "sequelize";
 
 export const signUp = async (request: Request, response: Response) => {
   const {
@@ -27,6 +30,21 @@ export const signUp = async (request: Request, response: Response) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       sendResponse(response, 400, "Invalid email format", null);
+      return;
+    }
+    const emailHash = hashEmail(email);
+    const blockedRecord = await DeletedAccounts.findOne({
+      where: {
+        email_hash: emailHash,
+        allow_after: { [Op.gt]: new Date() },
+      },
+    });
+    if (blockedRecord) {
+      sendResponse(
+        response,
+        409,
+        "This email was recently deleted. Please try again later."
+      );
       return;
     }
     const hashedPassword = await hashPassword(password);

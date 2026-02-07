@@ -39,6 +39,14 @@ export const userAuth = async (
       });
       return;
     }
+    if (user.isBlocked) {
+      response.status(403).json({
+        status: "error",
+        message: "Account is deleted or blocked",
+        errorMessage: "Account is deleted or blocked",
+      });
+      return;
+    }
 
     request.user = decode;
     next();

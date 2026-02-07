@@ -25,6 +25,18 @@ export const signIn = async (request: Request, response: Response) => {
       sendResponse(response, 400, `Account with ${email} dose not exist`);
       return
     }
+    if (user.isBlocked) {
+      sendResponse(response, 403, "Account is deleted or blocked");
+      return;
+    }
+    if (!user.isVerified) {
+      sendResponse(
+        response,
+        405,
+        "Account is not verified. Please verify your email."
+      );
+      return;
+    }
     const isPasswordValid = await verifyPassword(password, user?.password);
     if (!isPasswordValid) {
       sendResponse(response, 400, "Incorrect password");
@@ -148,6 +160,7 @@ export const signIn = async (request: Request, response: Response) => {
  *                         isVerified:
  *                           type: boolean
  *                           example: true
+ *                           description: Indicates whether the user's email has been verified.
  *                         isBlocked:
  *                           type: string
  *                           nullable: true
@@ -176,6 +189,25 @@ export const signIn = async (request: Request, response: Response) => {
  *                 message:
  *                   type: string
  *                   example: Email is required to login
+ *                 error:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
+ *       405:
+ *         description: Account is not verified.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Account is not verified. Please verify your email.
  *                 error:
  *                   type: boolean
  *                   example: true
