@@ -11,6 +11,7 @@ import customersRoutes from "./customersRoutes";
 import invoiceRoutes from "./invoiceRoutes";
 import operationsRoutes from "./operationsRoutes";
 import analyticsRoutes from "./analyticsRoutes";
+import { setDefaultUserSettings } from "../controllers/userControllers/setDefaultUserSettings";
 
 const indexRoutes = express.Router();
 indexRoutes.get("/", index);
@@ -25,4 +26,5 @@ indexRoutes.use("/customers", customersRoutes);
 indexRoutes.use("/invoices", invoiceRoutes);
 indexRoutes.use("/operations", operationsRoutes);
 indexRoutes.use("/analytics", analyticsRoutes);
+indexRoutes.get("/settings/defaults", setDefaultUserSettings)
 export default indexRoutes;

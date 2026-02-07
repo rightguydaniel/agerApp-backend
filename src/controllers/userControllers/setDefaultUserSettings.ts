@@ -65,24 +65,3 @@ export const setDefaultUserSettings = async (_request: any, response: Response) 
     return;
   }
 };
-
-/**
- * @swagger
- * /users/settings/defaults:
- *   post:
- *     summary: Apply default settings for existing users
- *     description: Creates missing user settings and fills null fields with default values.
- *     tags:
- *       - Users
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Defaults applied.
- *       401:
- *         description: Authentication token missing or invalid.
- *       403:
- *         description: Admin privileges required.
- *       500:
- *         description: Internal Server Error.
- */

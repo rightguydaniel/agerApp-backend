@@ -43,11 +43,5 @@ userRoutes.get("/whats-new", userAuth, getRecentOverview);
 userRoutes.get("/businesses", userAuth, getBusinesses);
 userRoutes.post("/delete-account/request", requestAccountDeletion);
 userRoutes.post("/delete-account/confirm", confirmAccountDeletion);
-userRoutes.post(
-  "/settings/defaults",
-  userAuth,
-  requireAdmin,
-  setDefaultUserSettings
-);
 
 export default userRoutes;
