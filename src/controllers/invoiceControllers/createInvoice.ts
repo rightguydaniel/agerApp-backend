@@ -5,6 +5,9 @@ import Customers from "../../models/Customers";
 import Invoices from "../../models/Invoices";
 import Products from "../../models/Products";
 import { database } from "../../configs/database/database";
+import Users from "../../models/Users";
+import UserBankDetails from "../../models/UserBankDetails";
+import { sendEmail } from "../../configs/email/emailConfig";
 
 export const createInvoice = async (
   request: JwtPayload,
@@ -31,7 +34,7 @@ export const createInvoice = async (
     delivery_fees?: number;
     auto_approve?: boolean;
   };
-
+  const invoiceId = `INV-${Date.now()}`;
   try {
     if (!customer_id || !Array.isArray(products) || products.length === 0) {
       sendResponse(response, 400, "customer_id and products are required");
@@ -60,6 +63,14 @@ export const createInvoice = async (
     };
 
     let invoice: Invoices | null = null;
+    let subtotal = 0;
+    let totalCalculated = 0;
+    let lineItems: Array<{
+      name: string;
+      quantity: number;
+      unitPrice: number;
+      lineTotal: number;
+    }> = [];
 
     await database.transaction(async (transaction) => {
       const productQuantities = new Map<string, number>();
@@ -123,7 +134,13 @@ export const createInvoice = async (
         }
       }
 
-      let subtotal = 0;
+      let computedSubtotal = 0;
+      const computedLineItems: Array<{
+        name: string;
+        quantity: number;
+        unitPrice: number;
+        lineTotal: number;
+      }> = [];
       for (const item of products) {
         const qty = Number(item.quantity);
         if (Number.isNaN(qty) || qty <= 0) {
@@ -139,22 +156,38 @@ export const createInvoice = async (
           if (Number.isNaN(price) || price < 0) {
             badRequest("Invalid product price");
           }
-          subtotal += price * qty;
+          const lineTotal = price * qty;
+          computedSubtotal += lineTotal;
+          computedLineItems.push({
+            name: product?.name ?? item.name,
+            quantity: qty,
+            unitPrice: price,
+            lineTotal,
+          });
         } else {
           const price = Number(item.price);
           if (Number.isNaN(price) || price < 0) {
             badRequest("Invalid product price");
           }
-          subtotal += price * qty;
+          const lineTotal = price * qty;
+          computedSubtotal += lineTotal;
+          computedLineItems.push({
+            name: item.name,
+            quantity: qty,
+            unitPrice: price,
+            lineTotal,
+          });
         }
       }
 
-      const totalCalculated =
-        subtotal + Number(tax ?? 0) + Number(delivery_fees ?? 0);
+      subtotal = computedSubtotal;
+      lineItems = computedLineItems;
+      totalCalculated =
+        computedSubtotal + Number(tax ?? 0) + Number(delivery_fees ?? 0);
 
       invoice = await Invoices.create(
         {
-          id: `INV-${Date.now()}`,
+          id: invoiceId,
           owner_id: userId,
           customer_id: customer.id,
           customer_details: {
@@ -179,6 +212,140 @@ export const createInvoice = async (
       sendResponse(response, 500, "Internal Server Error");
       return;
     }
+
+    const owner = await Users.findByPk(userId);
+    const bankDetails = await UserBankDetails.findOne({
+      where: { user_id: userId },
+    });
+
+    const formatCurrency = (value: number) => {
+      if (Number.isNaN(value)) {
+        return "N0";
+      }
+      try {
+        return new Intl.NumberFormat("en-NG", {
+          style: "currency",
+          currency: "NGN",
+          maximumFractionDigits: 0,
+        }).format(value);
+      } catch {
+        return `N${value.toLocaleString("en-NG")}`;
+      }
+    };
+
+    const formatDateTime = (date: Date) => {
+      const pad = (num: number) => String(num).padStart(2, "0");
+      const day = pad(date.getDate());
+      const month = pad(date.getMonth() + 1);
+      const year = date.getFullYear();
+      let hours = date.getHours();
+      const minutes = pad(date.getMinutes());
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      return `${day}-${month}-${year} | ${hours}:${minutes}${ampm}`;
+    };
+
+    const businessName = owner?.business_name || owner?.full_name || "AgerApp";
+    const invoiceDate = formatDateTime(new Date());
+
+    const invoiceHtml = `
+      <div style="background:#F7F7F7;padding:20px 12px;">
+        <div style="max-width:640px;margin:0 auto;background:#FFFFFF;border-radius:16px;border:1px solid #E5EEE6;overflow:hidden;">
+          <div style="padding:18px 22px;border-bottom:1px solid #E5EEE6;font-family:Arial, sans-serif;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;color:#2E6130;font-weight:700;">${invoiceId}</div>
+              <div style="font-size:12px;color:#6B6B6B;">${invoiceDate}</div>
+            </div>
+          </div>
+          <div style="padding:20px 22px;font-family:Arial, sans-serif;color:#1E1E1E;">
+            <div style="display:flex;justify-content:space-between;gap:20px;">
+              <div>
+                <div style="font-size:11px;color:#6B6B6B;text-transform:uppercase;letter-spacing:0.08em;">Billed to</div>
+                <div style="margin-top:6px;font-size:16px;font-weight:700;">${customer.name}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:11px;color:#6B6B6B;text-transform:uppercase;letter-spacing:0.08em;">From</div>
+                <div style="margin-top:6px;font-size:16px;font-weight:700;">${businessName}</div>
+              </div>
+            </div>
+
+            <div style="margin-top:18px;font-size:11px;color:#6B6B6B;text-transform:uppercase;letter-spacing:0.08em;">Billed for</div>
+            <div style="margin-top:8px;border-top:1px solid #E5EEE6;">
+              ${lineItems
+                .map(
+                  (item) => `
+                    <div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #F1F1F1;">
+                      <div style="font-size:14px;color:#1E1E1E;">
+                        ${item.name} <span style="color:#6B6B6B;">x${item.quantity}</span>
+                      </div>
+                      <div style="font-size:14px;font-weight:600;color:#1E1E1E;">${formatCurrency(
+                        item.lineTotal
+                      )}</div>
+                    </div>
+                  `
+                )
+                .join("")}
+            </div>
+
+            ${
+              narration
+                ? `
+                <div style="margin-top:16px;">
+                  <div style="font-size:12px;color:#6B6B6B;text-transform:uppercase;letter-spacing:0.08em;">Narration</div>
+                  <div style="margin-top:6px;font-size:13px;line-height:1.6;color:#3B3B3B;">${narration}</div>
+                </div>
+              `
+                : ""
+            }
+
+            <div style="margin-top:18px;border-top:1px dashed #DDE7DE;padding-top:12px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;">
+                <span>Subtotal</span>
+                <span>${formatCurrency(subtotal)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;margin-top:8px;">
+                <span>Tax</span>
+                <span>${formatCurrency(Number(tax ?? 0))}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;margin-top:8px;">
+                <span>Delivery fees</span>
+                <span>${formatCurrency(Number(delivery_fees ?? 0))}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#1E1E1E;margin-top:12px;">
+                <span>Total</span>
+                <span>${formatCurrency(totalCalculated)}</span>
+              </div>
+            </div>
+
+            ${
+              bankDetails
+                ? `
+                <div style="margin-top:20px;border-top:1px solid #E5EEE6;padding-top:14px;">
+                  <div style="font-size:12px;color:#6B6B6B;text-transform:uppercase;letter-spacing:0.08em;">Bank Details</div>
+                  <div style="margin-top:6px;font-size:13px;color:#1E1E1E;">
+                    ${bankDetails.bank_name} • ${bankDetails.account_number}
+                  </div>
+                  <div style="margin-top:4px;font-size:13px;color:#1E1E1E;">
+                    ${bankDetails.account_name}
+                  </div>
+                </div>
+              `
+                : ""
+            }
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (customer.email) {
+      await sendEmail(
+        customer.email,
+        `Invoice ${invoiceId}`,
+        undefined,
+        invoiceHtml
+      );
+    }
+
     sendResponse(response, 200, "Invoice created", invoice);
     return;
   } catch (error: any) {
