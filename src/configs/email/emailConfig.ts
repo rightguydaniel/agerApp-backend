@@ -31,7 +31,7 @@ export const sendEmail = async (
     <div style="background:#F8F8F8;padding:32px 16px;">
       <div style="max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #E5EEE6;">
         <div style="background:#2E6130;padding:20px;text-align:center;">
-          <img src="${logoUrl}" alt="AgerApp" style="height:48px;width:auto;display:inline-block;" />
+          <img src="${logoUrl}" alt="AgerApp" style="width:100%;height:auto;display:block;" />
         </div>
         <div style="padding:28px 24px;">
           <h1 style="margin:0 0 12px 0;font-size:22px;color:#2E6130;">${subject}</h1>

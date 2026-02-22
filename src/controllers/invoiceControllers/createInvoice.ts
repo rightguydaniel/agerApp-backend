@@ -3,6 +3,8 @@ import { JwtPayload } from "jsonwebtoken";
 import sendResponse from "../../utils/http/sendResponse";
 import Customers from "../../models/Customers";
 import Invoices from "../../models/Invoices";
+import Products from "../../models/Products";
+import { database } from "../../configs/database/database";
 
 export const createInvoice = async (
   request: JwtPayload,
@@ -13,7 +15,6 @@ export const createInvoice = async (
     customer_id,
     products,
     tax,
-    total,
     narration,
     delivery_fees,
     auto_approve,
@@ -26,7 +27,6 @@ export const createInvoice = async (
       price: number;
     }>;
     tax?: number;
-    total?: number;
     narration?: string;
     delivery_fees?: number;
     auto_approve?: boolean;
@@ -35,6 +35,13 @@ export const createInvoice = async (
   try {
     if (!customer_id || !Array.isArray(products) || products.length === 0) {
       sendResponse(response, 400, "customer_id and products are required");
+      return;
+    }
+    if (
+      (tax !== undefined && Number.isNaN(Number(tax))) ||
+      (delivery_fees !== undefined && Number.isNaN(Number(delivery_fees)))
+    ) {
+      sendResponse(response, 400, "Invalid tax or delivery fees");
       return;
     }
 
@@ -46,29 +53,140 @@ export const createInvoice = async (
       return;
     }
 
-    const invoice = await Invoices.create({
-      id: `INV-${Date.now()}`,
-      owner_id: userId,
-      customer_id: customer.id,
-      customer_details: {
-        id: customer.id,
-        name: customer.name,
-        phone_number: customer.phone_number,
-        location: customer.location,
-        email: customer.email,
-      },
-      products,
-      tax: tax ?? null,
-      total: total ?? null,
-      narration: narration ?? null,
-      delivery_fees: delivery_fees ?? null,
-      auto_approve: auto_approve ?? false,
+    const badRequest = (message: string): never => {
+      const error = new Error(message) as Error & { status?: number };
+      error.status = 400;
+      throw error;
+    };
+
+    let invoice: Invoices | null = null;
+
+    await database.transaction(async (transaction) => {
+      const productQuantities = new Map<string, number>();
+      for (const item of products) {
+        if (!item?.product_id) {
+          continue;
+        }
+        const qty = Number(item.quantity);
+        if (Number.isNaN(qty) || qty <= 0) {
+          badRequest("Invalid product quantity");
+        }
+        productQuantities.set(
+          item.product_id,
+          (productQuantities.get(item.product_id) ?? 0) + qty
+        );
+      }
+
+      const productIds = Array.from(productQuantities.keys());
+      const productsById = new Map<string, Products>();
+
+      if (productIds.length > 0) {
+        const dbProducts = await Products.findAll({
+          where: { owner_id: userId, id: productIds },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (dbProducts.length !== productIds.length) {
+          badRequest("One or more products not found");
+        }
+
+        for (const product of dbProducts) {
+          productsById.set(product.id, product);
+        }
+
+        const getProductOrThrow = (productId: string) => {
+          const product = productsById.get(productId);
+          if (!product) {
+            badRequest("One or more products not found");
+          }
+          return product;
+        };
+
+        for (const [productId, qty] of productQuantities.entries()) {
+          const product = getProductOrThrow(productId);
+          const available = Number(product?.quantity);
+          if (Number.isNaN(available)) {
+            badRequest("Invalid product quantity");
+          }
+          if (available < qty) {
+            badRequest(`Insufficient stock for product ${product?.name}`);
+          }
+        }
+
+        for (const [productId, qty] of productQuantities.entries()) {
+          const product = getProductOrThrow(productId);
+          await product?.update(
+            { quantity: Number(product?.quantity) - qty },
+            { transaction }
+          );
+        }
+      }
+
+      let subtotal = 0;
+      for (const item of products) {
+        const qty = Number(item.quantity);
+        if (Number.isNaN(qty) || qty <= 0) {
+          badRequest("Invalid product quantity");
+        }
+
+        if (item.product_id && productsById.has(item.product_id)) {
+          const product = productsById.get(item.product_id);
+          if (!product) {
+            badRequest("One or more products not found");
+          }
+          const price = Number(product?.price);
+          if (Number.isNaN(price) || price < 0) {
+            badRequest("Invalid product price");
+          }
+          subtotal += price * qty;
+        } else {
+          const price = Number(item.price);
+          if (Number.isNaN(price) || price < 0) {
+            badRequest("Invalid product price");
+          }
+          subtotal += price * qty;
+        }
+      }
+
+      const totalCalculated =
+        subtotal + Number(tax ?? 0) + Number(delivery_fees ?? 0);
+
+      invoice = await Invoices.create(
+        {
+          id: `INV-${Date.now()}`,
+          owner_id: userId,
+          customer_id: customer.id,
+          customer_details: {
+            id: customer.id,
+            name: customer.name,
+            phone_number: customer.phone_number,
+            location: customer.location,
+            email: customer.email,
+          },
+          products,
+          tax: tax ?? null,
+          total: totalCalculated,
+          narration: narration ?? null,
+          delivery_fees: delivery_fees ?? null,
+          auto_approve: auto_approve ?? false,
+        },
+        { transaction }
+      );
     });
 
+    if (!invoice) {
+      sendResponse(response, 500, "Internal Server Error");
+      return;
+    }
     sendResponse(response, 200, "Invoice created", invoice);
     return;
   } catch (error: any) {
     console.error("Error in createInvoice:", error.message);
+    if (error?.status === 400) {
+      sendResponse(response, 400, error.message);
+      return;
+    }
     sendResponse(response, 500, "Internal Server Error", error.message);
     return;
   }

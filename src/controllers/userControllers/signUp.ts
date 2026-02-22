@@ -24,7 +24,7 @@ export const signUp = async (request: Request, response: Response) => {
     password,
   } = request.body;
   try {
-    if (!fullName || !email || !phone) {
+    if (!fullName || !email || !phone || !password) {
       sendResponse(response, 400, "Missing fields", null);
       return;
     }
@@ -47,6 +47,21 @@ export const signUp = async (request: Request, response: Response) => {
         "This email was recently deleted. Please try again later."
       );
       return;
+    }
+    const existingUser = await Users.findOne({
+      where: {
+        [Op.or]: [{ email }, { phone }],
+      },
+    });
+    if (existingUser) {
+      if (existingUser.email === email) {
+        sendResponse(response, 409, "Email already exists", null);
+        return;
+      }
+      if (existingUser.phone === phone) {
+        sendResponse(response, 409, "Phone already exists", null);
+        return;
+      }
     }
     const hashedPassword = await hashPassword(password);
     const newUser = await Users.create({

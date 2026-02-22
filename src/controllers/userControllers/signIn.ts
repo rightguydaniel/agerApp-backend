@@ -5,25 +5,40 @@ import { verifyPassword } from "../../utils/services/password";
 import { generateToken } from "../../utils/services/token";
 
 export const signIn = async (request: Request, response: Response) => {
-  const { email, password } = request.body;
+  const { email, phone, password } = request.body;
   try {
-    if (!email) {
-      sendResponse(response, 400, "Email is required to login");
-      return
+    if (!email && !phone) {
+      sendResponse(response, 400, "Email or phone is required to login");
+      return;
     }
     if (!password) {
       sendResponse(response, 400, "Password is required to login");
-      return
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      sendResponse(response, 400, "Invalid email format", null);
       return;
     }
-    const user = await Users.findOne({ where: { email } });
+    const emailValue = typeof email === "string" ? email.trim() : "";
+    const phoneValue = typeof phone === "string" ? phone.trim() : "";
+
+    let user: Users | null = null;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailValue) {
+      if (!emailRegex.test(emailValue)) {
+        if (!phoneValue) {
+          sendResponse(response, 400, "Invalid email format", null);
+          return;
+        }
+      } else {
+        user = await Users.findOne({ where: { email: emailValue } });
+      }
+    }
+
+    if (!user && phoneValue) {
+      user = await Users.findOne({ where: { phone: phoneValue } });
+    }
+
     if (!user) {
-      sendResponse(response, 400, `Account with ${email} dose not exist`);
-      return
+      const identifier = emailValue || phoneValue;
+      sendResponse(response, 400, `Account with ${identifier} dose not exist`);
+      return;
     }
     if (user.isBlocked) {
       sendResponse(response, 403, "Account is deleted or blocked");
@@ -40,7 +55,7 @@ export const signIn = async (request: Request, response: Response) => {
     const isPasswordValid = await verifyPassword(password, user?.password);
     if (!isPasswordValid) {
       sendResponse(response, 400, "Incorrect password");
-      return
+      return;
     }
     const data = { id: user?.id, email: user?.email, role: user?.role };
 
@@ -49,7 +64,7 @@ export const signIn = async (request: Request, response: Response) => {
       user: { ...user?.get(), password: undefined },
       token,
     });
-    return
+    return;
   } catch (error: any) {
     console.error("Error during user login:", error.message);
     sendResponse(response, 500, "Internal Server Error", error.message);
@@ -62,7 +77,7 @@ export const signIn = async (request: Request, response: Response) => {
  * /users/login:
  *   post:
  *     summary: User sign-in
- *     description: Authenticates a user with their email and password, returning a token upon successful login.
+ *     description: Authenticates a user with their email or phone and password, returning a token upon successful login.
  *     tags:
  *       - Users
  *     requestBody:
@@ -72,7 +87,6 @@ export const signIn = async (request: Request, response: Response) => {
  *           schema:
  *             type: object
  *             required:
- *               - email
  *               - password
  *             properties:
  *               email:
@@ -80,6 +94,10 @@ export const signIn = async (request: Request, response: Response) => {
  *                 format: email
  *                 description: The user's email address.
  *                 example: user@mailinator.com
+ *               phone:
+ *                 type: string
+ *                 description: The user's phone number.
+ *                 example: "+2348012345678"
  *               password:
  *                 type: string
  *                 description: The user's password.
