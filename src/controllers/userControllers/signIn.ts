@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import sendResponse from "../../utils/http/sendResponse";
 import Users from "../../models/Users";
+import { Op } from "sequelize";
 import { verifyPassword } from "../../utils/services/password";
 import { generateToken } from "../../utils/services/token";
 
 export const signIn = async (request: Request, response: Response) => {
-  const { email, phone, password } = request.body;
+  const { username, password } = request.body;
   try {
-    if (!email && !phone) {
+    if (!username) {
       sendResponse(response, 400, "Email or phone is required to login");
       return;
     }
@@ -15,29 +16,30 @@ export const signIn = async (request: Request, response: Response) => {
       sendResponse(response, 400, "Password is required to login");
       return;
     }
-    const emailValue = typeof email === "string" ? email.trim() : "";
-    const phoneValue = typeof phone === "string" ? phone.trim() : "";
+    const usernameValue =
+      typeof username === "string" ? username.trim() : "";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     let user: Users | null = null;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailValue) {
-      if (!emailRegex.test(emailValue)) {
-        if (!phoneValue) {
-          sendResponse(response, 400, "Invalid email format", null);
-          return;
-        }
-      } else {
-        user = await Users.findOne({ where: { email: emailValue } });
-      }
-    }
-
-    if (!user && phoneValue) {
-      user = await Users.findOne({ where: { phone: phoneValue } });
+    if (emailRegex.test(usernameValue)) {
+      user = await Users.findOne({ where: { email: usernameValue } });
+    } else {
+      const digits = usernameValue.replace(/\D/g, "");
+      const last10 = digits.slice(-10);
+      const phoneCandidates = last10
+        ? [`+234${last10}`, `0${last10}`]
+        : [];
+      user = await Users.findOne({
+        where: { phone: { [Op.in]: phoneCandidates } },
+      });
     }
 
     if (!user) {
-      const identifier = emailValue || phoneValue;
-      sendResponse(response, 400, `Account with ${identifier} dose not exist`);
+      sendResponse(
+        response,
+        400,
+        `Account with ${usernameValue} dose not exist`
+      );
       return;
     }
     if (user.isBlocked) {
@@ -87,17 +89,13 @@ export const signIn = async (request: Request, response: Response) => {
  *           schema:
  *             type: object
  *             required:
+ *               - username
  *               - password
  *             properties:
- *               email:
+ *               username:
  *                 type: string
- *                 format: email
- *                 description: The user's email address.
+ *                 description: The user's email address or phone number.
  *                 example: user@mailinator.com
- *               phone:
- *                 type: string
- *                 description: The user's phone number.
- *                 example: "+2348012345678"
  *               password:
  *                 type: string
  *                 description: The user's password.
