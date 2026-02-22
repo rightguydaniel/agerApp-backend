@@ -3,6 +3,8 @@ import { JwtPayload } from "jsonwebtoken";
 import sendResponse from "../../utils/http/sendResponse";
 import Customers from "../../models/Customers";
 import Invoices from "../../models/Invoices";
+import Products from "../../models/Products";
+import { database } from "../../configs/database/database";
 
 export const updateInvoice = async (
   request: JwtPayload,
@@ -69,19 +71,125 @@ export const updateInvoice = async (
       return;
     }
 
-    await invoice.update({
-      customer_id: nextCustomerId,
-      customer_details: nextCustomerDetails,
-      products: products ?? invoice.products,
-      narration: narration ?? invoice.narration,
-      delivery_fees: delivery_fees ?? invoice.delivery_fees,
-      auto_approve: auto_approve ?? invoice.auto_approve,
+    const badRequest = (message: string): never => {
+      const error = new Error(message) as Error & { status?: number };
+      error.status = 400;
+      throw error;
+    };
+
+    await database.transaction(async (transaction) => {
+      if (products) {
+        const oldQuantities = new Map<string, number>();
+        for (const item of invoice.products ?? []) {
+          if (!item?.product_id) {
+            continue;
+          }
+          const qty = Number(item.quantity);
+          if (Number.isNaN(qty) || qty <= 0) {
+            badRequest("Invalid product quantity");
+          }
+          oldQuantities.set(
+            item.product_id,
+            (oldQuantities.get(item.product_id) ?? 0) + qty
+          );
+        }
+
+        const newQuantities = new Map<string, number>();
+        for (const item of products) {
+          if (!item?.product_id) {
+            continue;
+          }
+          const qty = Number(item.quantity);
+          if (Number.isNaN(qty) || qty <= 0) {
+            badRequest("Invalid product quantity");
+          }
+          newQuantities.set(
+            item.product_id,
+            (newQuantities.get(item.product_id) ?? 0) + qty
+          );
+        }
+
+        const productIds = Array.from(
+          new Set([...oldQuantities.keys(), ...newQuantities.keys()])
+        );
+
+        if (productIds.length > 0) {
+          const dbProducts = await Products.findAll({
+            where: { owner_id: userId, id: productIds },
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          });
+
+          if (dbProducts.length !== productIds.length) {
+            badRequest("One or more products not found");
+          }
+
+          const productsById = new Map(
+            dbProducts.map((product) => [product.id, product])
+          );
+
+          const getProductOrThrow = (productId: string) => {
+            const product = productsById.get(productId);
+            if (!product) {
+              badRequest("One or more products not found");
+            }
+            return product;
+          };
+
+          for (const productId of productIds) {
+            const oldQty = oldQuantities.get(productId) ?? 0;
+            const newQty = newQuantities.get(productId) ?? 0;
+            const delta = newQty - oldQty;
+            if (delta <= 0) {
+              continue;
+            }
+            const product = getProductOrThrow(productId);
+            const available = Number(product?.quantity);
+            if (Number.isNaN(available)) {
+              badRequest("Invalid product quantity");
+            }
+            if (available < delta) {
+              badRequest(`Insufficient stock for product ${product?.name}`);
+            }
+          }
+
+          for (const productId of productIds) {
+            const oldQty = oldQuantities.get(productId) ?? 0;
+            const newQty = newQuantities.get(productId) ?? 0;
+            const delta = newQty - oldQty;
+            if (delta === 0) {
+              continue;
+            }
+            const product = getProductOrThrow(productId);
+            await product?.update(
+              { quantity: Number(product.quantity) - delta },
+              { transaction }
+            );
+          }
+        }
+      }
+
+      await invoice.update(
+        {
+          customer_id: nextCustomerId,
+          customer_details: nextCustomerDetails,
+          products: products ?? invoice.products,
+          narration: narration ?? invoice.narration,
+          delivery_fees: delivery_fees ?? invoice.delivery_fees,
+          auto_approve: auto_approve ?? invoice.auto_approve,
+        },
+        { transaction }
+      );
     });
 
     sendResponse(response, 200, "Invoice updated", invoice);
     return;
   } catch (error: any) {
     console.error("Error in updateInvoice:", error.message);
+    if (error?.status === 400) {
+      sendResponse(response, 400, error.message);
+      return;
+    }
     sendResponse(response, 500, "Internal Server Error", error.message);
     return;
   }
