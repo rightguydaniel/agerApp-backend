@@ -21,6 +21,7 @@ export const createInvoice = async (
     narration,
     delivery_fees,
     auto_approve,
+    discounts,
   } = request.body as {
     customer_id?: string;
     products?: Array<{
@@ -33,6 +34,7 @@ export const createInvoice = async (
     narration?: string;
     delivery_fees?: number;
     auto_approve?: boolean;
+    discounts?: number;
   };
   const invoiceId = `INV-${Date.now()}`;
   try {
@@ -42,9 +44,10 @@ export const createInvoice = async (
     }
     if (
       (tax !== undefined && Number.isNaN(Number(tax))) ||
-      (delivery_fees !== undefined && Number.isNaN(Number(delivery_fees)))
+      (delivery_fees !== undefined && Number.isNaN(Number(delivery_fees))) ||
+      (discounts !== undefined && Number.isNaN(Number(discounts)))
     ) {
-      sendResponse(response, 400, "Invalid tax or delivery fees");
+      sendResponse(response, 400, "Invalid tax, delivery fees, or discounts");
       return;
     }
 
@@ -183,7 +186,10 @@ export const createInvoice = async (
       subtotal = computedSubtotal;
       lineItems = computedLineItems;
       totalCalculated =
-        computedSubtotal + Number(tax ?? 0) + Number(delivery_fees ?? 0);
+        computedSubtotal +
+        Number(tax ?? 0) +
+        Number(delivery_fees ?? 0) -
+        Number(discounts ?? 0);
 
       invoice = await Invoices.create(
         {
@@ -202,6 +208,7 @@ export const createInvoice = async (
           total: totalCalculated,
           narration: narration ?? null,
           delivery_fees: delivery_fees ?? null,
+          discounts: discounts ?? null,
           auto_approve: auto_approve ?? false,
         },
         { transaction }
@@ -302,6 +309,10 @@ export const createInvoice = async (
               <div style="display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;">
                 <span>Subtotal</span>
                 <span>${formatCurrency(subtotal)}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;margin-top:8px;">
+                <span>Discounts</span>
+                <span>${formatCurrency(Number(discounts ?? 0))}</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:13px;color:#1E1E1E;margin-top:8px;">
                 <span>Tax</span>
@@ -406,9 +417,9 @@ export const createInvoice = async (
  *               tax:
  *                 type: number
  *                 example: 150
- *               total:
+ *               discounts:
  *                 type: number
- *                 example: 5150
+ *                 example: 500
  *               delivery_fees:
  *                 type: number
  *                 example: 500
@@ -476,6 +487,10 @@ export const createInvoice = async (
  *                       type: number
  *                       nullable: true
  *                       example: 150
+ *                     discounts:
+ *                       type: number
+ *                       nullable: true
+ *                       example: 500
  *                     total:
  *                       type: number
  *                       nullable: true

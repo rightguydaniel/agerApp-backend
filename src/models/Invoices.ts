@@ -23,6 +23,7 @@ export interface InvoicesAttributes {
   customer_details: InvoiceCustomerSnapshot;
   products: InvoiceProductItem[];
   tax?: number | null;
+  discounts?: number | null;
   total?: number | null;
   narration?: string | null;
   delivery_fees?: number | null;
@@ -43,6 +44,7 @@ export class Invoices
   public customer_details!: InvoiceCustomerSnapshot;
   public products!: InvoiceProductItem[];
   public tax!: number | null;
+  public discounts!: number | null;
   public total!: number | null;
   public narration!: string | null;
   public delivery_fees!: number | null;
@@ -81,6 +83,11 @@ Invoices.init(
       allowNull: false,
     },
     tax: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: null,
+    },
+    discounts: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: null,
