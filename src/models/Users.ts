@@ -28,6 +28,7 @@ export interface UsersAttributes {
   email: string;
   phone?: string;
   picture?: string;
+  description?: string | null;
   role: string;
   country?: string;
   state?: string;
@@ -76,6 +77,11 @@ Users.init(
     },
     picture: {
       type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
+    },
+    description: {
+      type: DataTypes.TEXT,
       allowNull: true,
       defaultValue: null,
     },

@@ -2,6 +2,7 @@ import { Response } from "express";
 import { JwtPayload } from "jsonwebtoken";
 import sendResponse from "../../utils/http/sendResponse";
 import Customers from "../../models/Customers";
+import Invoices from "../../models/Invoices";
 
 export const deleteCustomer = async (
   request: JwtPayload,
@@ -22,6 +23,20 @@ export const deleteCustomer = async (
 
     if (!customer) {
       sendResponse(response, 400, "Customer not found");
+      return;
+    }
+
+    const linkedInvoicesCount = await Invoices.count({
+      where: { customer_id: customerId, owner_id: userId },
+    });
+
+    if (linkedInvoicesCount > 0) {
+      sendResponse(
+        response,
+        409,
+        "Cannot delete customer with existing invoices. Delete related invoices first.",
+        { linkedInvoicesCount }
+      );
       return;
     }
 

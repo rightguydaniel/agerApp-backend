@@ -22,6 +22,7 @@ import { setDefaultUserSettings } from "../controllers/userControllers/setDefaul
 import { requestPasswordReset } from "../controllers/userControllers/requestPasswordReset";
 import { resendPasswordReset } from "../controllers/userControllers/resendPasswordReset";
 import { verifyPasswordReset } from "../controllers/userControllers/verifyPasswordReset";
+import { updateDescription } from "../controllers/userControllers/updateDescription";
 import { userAuth } from "../middleware/userAuth";
 import userUpload from "../middleware/userUpload";
 import { requireAdmin } from "../middleware/requireAdmin";
@@ -45,6 +46,7 @@ userRoutes.get("/bank-details", userAuth, getBankDetails);
 userRoutes.put("/settings", userAuth, updateUserSettings);
 userRoutes.get("/settings", userAuth, getUserSettings);
 userRoutes.patch("/business-name", userAuth, updateBusinessName);
+userRoutes.patch("/description", userAuth, updateDescription);
 userRoutes.get("/whats-new", userAuth, getRecentOverview);
 userRoutes.get("/businesses", userAuth, getBusinesses);
 userRoutes.post("/delete-account/request", requestAccountDeletion);
