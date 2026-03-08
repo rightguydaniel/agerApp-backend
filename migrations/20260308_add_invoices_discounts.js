@@ -5,10 +5,21 @@ module.exports = {
     if (!table.discounts) {
       await queryInterface.addColumn("Invoices", "discounts", {
         type: Sequelize.FLOAT,
-        allowNull: true,
-        defaultValue: null,
+        allowNull: false,
+        defaultValue: 0,
       });
+      return;
     }
+
+    await queryInterface.sequelize.query(
+      "UPDATE Invoices SET discounts = 0 WHERE discounts IS NULL;"
+    );
+
+    await queryInterface.changeColumn("Invoices", "discounts", {
+      type: Sequelize.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
+    });
   },
 
   async down(queryInterface) {

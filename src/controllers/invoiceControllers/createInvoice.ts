@@ -208,7 +208,7 @@ export const createInvoice = async (
           total: totalCalculated,
           narration: narration ?? null,
           delivery_fees: delivery_fees ?? null,
-          discounts: discounts ?? null,
+          discounts: discounts ?? 0,
           auto_approve: auto_approve ?? false,
         },
         { transaction }
