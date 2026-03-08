@@ -36,6 +36,7 @@ export const createInvoice = async (
     auto_approve?: boolean;
     discounts?: number;
   };
+  console.log("Create Invoice payload:", request.body)
   const invoiceId = `INV-${Date.now()}`;
   try {
     if (!customer_id || !Array.isArray(products) || products.length === 0) {
