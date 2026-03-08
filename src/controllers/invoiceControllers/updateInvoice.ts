@@ -5,6 +5,11 @@ import Customers from "../../models/Customers";
 import Invoices from "../../models/Invoices";
 import Products from "../../models/Products";
 import { database } from "../../configs/database/database";
+import Users from "../../models/Users";
+import {
+  sendRestockAlertEmail,
+  type RestockAlertEmailItem,
+} from "../../utils/services/restockAlertNotifier";
 
 export const updateInvoice = async (
   request: JwtPayload,
@@ -76,6 +81,7 @@ export const updateInvoice = async (
       error.status = 400;
       throw error;
     };
+    const restockAlerts: RestockAlertEmailItem[] = [];
 
     await database.transaction(async (transaction) => {
       if (products) {
@@ -128,12 +134,12 @@ export const updateInvoice = async (
             dbProducts.map((product) => [product.id, product])
           );
 
-          const getProductOrThrow = (productId: string) => {
+          const getProductOrThrow = (productId: string): Products => {
             const product = productsById.get(productId);
             if (!product) {
               badRequest("One or more products not found");
             }
-            return product;
+            return product!;
           };
 
           for (const productId of productIds) {
@@ -161,10 +167,24 @@ export const updateInvoice = async (
               continue;
             }
             const product = getProductOrThrow(productId);
-            await product?.update(
-              { quantity: Number(product.quantity) - delta },
-              { transaction }
-            );
+            const previousQuantity = Number(product.quantity);
+            const nextQuantity = previousQuantity - delta;
+            const restockAlert = Number(product.restock_alert ?? 0);
+
+            await product.update({ quantity: nextQuantity }, { transaction });
+
+            if (
+              delta > 0 &&
+              restockAlert > 0 &&
+              previousQuantity > restockAlert &&
+              nextQuantity <= restockAlert
+            ) {
+              restockAlerts.push({
+                productName: product.name,
+                quantity: nextQuantity,
+                restockAlert,
+              });
+            }
           }
         }
       }
@@ -181,6 +201,25 @@ export const updateInvoice = async (
         { transaction }
       );
     });
+
+    if (restockAlerts.length > 0) {
+      const owner = await Users.findByPk(userId);
+      const businessName =
+        owner?.business_name || owner?.full_name || "AgerApp";
+
+      if (owner?.email) {
+        await sendRestockAlertEmail(
+          owner.email,
+          businessName,
+          restockAlerts
+        ).catch((mailError) => {
+          console.error(
+            "Failed to send restock alert email in updateInvoice:",
+            mailError?.message ?? mailError
+          );
+        });
+      }
+    }
 
     sendResponse(response, 200, "Invoice updated", invoice);
     return;

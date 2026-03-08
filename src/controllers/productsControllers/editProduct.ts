@@ -3,10 +3,12 @@ import fs from "fs";
 import { JwtPayload } from "jsonwebtoken";
 import sendResponse from "../../utils/http/sendResponse";
 import Products from "../../models/Products";
+import Users from "../../models/Users";
 import {
   buildProductImageUrl,
   resolveLocalProductImagePath,
 } from "../../utils/services/media";
+import { sendRestockAlertEmail } from "../../utils/services/restockAlertNotifier";
 
 export const editProduct = async (request: JwtPayload, response: Response) => {
   const userId = request.user.id;
@@ -71,16 +73,59 @@ export const editProduct = async (request: JwtPayload, response: Response) => {
           })()
         : product.image;
 
+    const previousQuantity = Number(product.quantity);
+    const nextQuantity =
+      quantity !== undefined ? Number(quantity) : Number(product.quantity);
+    const nextRestockAlert =
+      restock_alert !== undefined
+        ? Number(restock_alert)
+        : Number(product.restock_alert ?? 0);
+
+    if (Number.isNaN(nextQuantity) || nextQuantity < 0) {
+      sendResponse(response, 400, "Invalid product quantity");
+      return;
+    }
+
+    if (Number.isNaN(nextRestockAlert) || nextRestockAlert < 0) {
+      sendResponse(response, 400, "Invalid restock_alert");
+      return;
+    }
+
     await product.update({
       name: name ? name : product.name,
       measurement: measurement ? measurement : product.measurement,
-      quantity: quantity ? quantity : product.quantity,
+      quantity: nextQuantity,
       quantity_type: quantity_type ? quantity_type : product.quantity_type,
       price: price ? price : product.price,
       expiry_date: expiry ? expiry : product.expiry_date,
-      restock_alert: restock_alert ? restock_alert : product.restock_alert,
+      restock_alert: nextRestockAlert,
       image: nextImage,
     });
+
+    if (
+      nextRestockAlert > 0 &&
+      previousQuantity > nextRestockAlert &&
+      nextQuantity <= nextRestockAlert
+    ) {
+      const owner = await Users.findByPk(userId);
+      const businessName =
+        owner?.business_name || owner?.full_name || "AgerApp";
+      if (owner?.email) {
+        await sendRestockAlertEmail(owner.email, businessName, [
+          {
+            productName: product.name,
+            quantity: nextQuantity,
+            restockAlert: nextRestockAlert,
+          },
+        ]).catch((mailError) => {
+          console.error(
+            "Failed to send restock alert email in editProduct:",
+            mailError?.message ?? mailError
+          );
+        });
+      }
+    }
+
     sendResponse(response, 200, "Product Updated");
     return;
   } catch (error: any) {

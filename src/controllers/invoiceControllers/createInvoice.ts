@@ -8,6 +8,10 @@ import { database } from "../../configs/database/database";
 import Users from "../../models/Users";
 import UserBankDetails from "../../models/UserBankDetails";
 import { sendEmail } from "../../configs/email/emailConfig";
+import {
+  sendRestockAlertEmail,
+  type RestockAlertEmailItem,
+} from "../../utils/services/restockAlertNotifier";
 
 export const createInvoice = async (
   request: JwtPayload,
@@ -75,6 +79,7 @@ export const createInvoice = async (
       unitPrice: number;
       lineTotal: number;
     }> = [];
+    const restockAlerts: RestockAlertEmailItem[] = [];
 
     await database.transaction(async (transaction) => {
       const productQuantities = new Map<string, number>();
@@ -110,12 +115,12 @@ export const createInvoice = async (
           productsById.set(product.id, product);
         }
 
-        const getProductOrThrow = (productId: string) => {
+        const getProductOrThrow = (productId: string): Products => {
           const product = productsById.get(productId);
           if (!product) {
             badRequest("One or more products not found");
           }
-          return product;
+          return product!;
         };
 
         for (const [productId, qty] of productQuantities.entries()) {
@@ -131,10 +136,23 @@ export const createInvoice = async (
 
         for (const [productId, qty] of productQuantities.entries()) {
           const product = getProductOrThrow(productId);
-          await product?.update(
-            { quantity: Number(product?.quantity) - qty },
-            { transaction }
-          );
+          const previousQuantity = Number(product.quantity);
+          const nextQuantity = previousQuantity - qty;
+          const restockAlert = Number(product.restock_alert ?? 0);
+
+          await product.update({ quantity: nextQuantity }, { transaction });
+
+          if (
+            restockAlert > 0 &&
+            previousQuantity > restockAlert &&
+            nextQuantity <= restockAlert
+          ) {
+            restockAlerts.push({
+              productName: product.name,
+              quantity: nextQuantity,
+              restockAlert,
+            });
+          }
         }
       }
 
@@ -255,6 +273,17 @@ export const createInvoice = async (
 
     const businessName = owner?.business_name || owner?.full_name || "AgerApp";
     const invoiceDate = formatDateTime(new Date());
+
+    if (owner?.email && restockAlerts.length > 0) {
+      await sendRestockAlertEmail(owner.email, businessName, restockAlerts).catch(
+        (mailError) => {
+          console.error(
+            "Failed to send restock alert email in createInvoice:",
+            mailError?.message ?? mailError
+          );
+        }
+      );
+    }
 
     const invoiceHtml = `
       <div style="background:#F7F7F7;padding:20px 12px;">
