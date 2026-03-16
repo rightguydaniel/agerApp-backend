@@ -4,7 +4,6 @@ import sendResponse from "../../utils/http/sendResponse";
 import Invoices from "../../models/Invoices";
 import Products from "../../models/Products";
 import { database } from "../../configs/database/database";
-import { where } from "sequelize";
 
 export const deleteInvoice = async (
   request: JwtPayload,
@@ -28,18 +27,64 @@ export const deleteInvoice = async (
       return;
     }
 
+    const badRequest = (message: string): never => {
+      const error = new Error(message) as Error & { status?: number };
+      error.status = 400;
+      throw error;
+    };
+
     await database.transaction(async (transaction) => {
+      const productQuantities = new Map<string, number>();
+
       for (const item of invoice.products ?? []) {
         if (!item?.product_id) {
           continue;
         }
         const qty = Number(item.quantity);
-        await Products.increment({quantity:qty}, {where:{id:item.product_id}})
+        if (Number.isNaN(qty) || qty <= 0) {
+          badRequest("Invalid product quantity");
+        }
+
+        productQuantities.set(
+          item.product_id,
+          (productQuantities.get(item.product_id) ?? 0) + qty
+        );
       }
+
+      const productIds = Array.from(productQuantities.keys());
+
+      if (productIds.length > 0) {
+        const dbProducts = await Products.findAll({
+          where: { id: productIds, owner_id: userId },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (dbProducts.length !== productIds.length) {
+          badRequest("One or more products not found");
+        }
+
+        const productsById = new Map(
+          dbProducts.map((product) => [product.id, product])
+        );
+
+        for (const [productId, qty] of productQuantities.entries()) {
+          const product = productsById.get(productId);
+          if (!product) {
+            badRequest("One or more products not found");
+          }
+
+          await product!.update(
+            { quantity: Number(product!.quantity) + qty },
+            { transaction }
+          );
+        }
+      }
+
       await invoice.destroy({ transaction });
     });
 
-    sendResponse(response, 200, "Invoice deleted", {invoice});
+    sendResponse(response, 200, "Invoice deleted", { invoice });
     return;
   } catch (error: any) {
     console.error("Error in deleteInvoice:", error.message);
