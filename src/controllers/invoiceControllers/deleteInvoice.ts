@@ -39,7 +39,7 @@ export const deleteInvoice = async (
       await invoice.destroy({ transaction });
     });
 
-    sendResponse(response, 200, "Invoice deleted");
+    sendResponse(response, 200, "Invoice deleted", {invoice});
     return;
   } catch (error: any) {
     console.error("Error in deleteInvoice:", error.message);
