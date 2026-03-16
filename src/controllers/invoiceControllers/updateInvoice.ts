@@ -27,6 +27,7 @@ export const updateInvoice = async (
     customer_id?: string;
     products?: Array<{
       product_id?: string;
+      productId?: string;
       name: string;
       quantity: number;
       price: number;
@@ -81,10 +82,14 @@ export const updateInvoice = async (
       error.status = 400;
       throw error;
     };
+    const normalizedProducts = products?.map((item) => ({
+      ...item,
+      product_id: item.product_id ?? item.productId,
+    }));
     const restockAlerts: RestockAlertEmailItem[] = [];
 
     await database.transaction(async (transaction) => {
-      if (products) {
+      if (normalizedProducts) {
         const oldQuantities = new Map<string, number>();
         for (const item of invoice.products ?? []) {
           if (!item?.product_id) {
@@ -101,7 +106,7 @@ export const updateInvoice = async (
         }
 
         const newQuantities = new Map<string, number>();
-        for (const item of products) {
+        for (const item of normalizedProducts) {
           if (!item?.product_id) {
             continue;
           }
@@ -193,7 +198,7 @@ export const updateInvoice = async (
         {
           customer_id: nextCustomerId,
           customer_details: nextCustomerDetails,
-          products: products ?? invoice.products,
+          products: normalizedProducts ?? invoice.products,
           narration: narration ?? invoice.narration,
           delivery_fees: delivery_fees ?? invoice.delivery_fees,
           auto_approve: auto_approve ?? invoice.auto_approve,

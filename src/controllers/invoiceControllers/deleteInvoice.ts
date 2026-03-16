@@ -35,20 +35,61 @@ export const deleteInvoice = async (
 
     await database.transaction(async (transaction) => {
       const productQuantities = new Map<string, number>();
+      const productNames = new Set<string>();
 
       for (const item of invoice.products ?? []) {
-        if (!item?.product_id) {
+        const productId =
+          item?.product_id ?? (item as { productId?: string } | null)?.productId;
+
+        if (!productId) {
+          if (item?.name) {
+            productNames.add(item.name);
+          }
           continue;
         }
+
         const qty = Number(item.quantity);
         if (Number.isNaN(qty) || qty <= 0) {
           badRequest("Invalid product quantity");
         }
 
         productQuantities.set(
-          item.product_id,
-          (productQuantities.get(item.product_id) ?? 0) + qty
+          productId,
+          (productQuantities.get(productId) ?? 0) + qty
         );
+      }
+
+      if (productQuantities.size === 0 && productNames.size > 0) {
+        const dbProducts = await Products.findAll({
+          where: { owner_id: userId, name: Array.from(productNames) },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        const productsByName = new Map(
+          dbProducts.map((product) => [product.name, product])
+        );
+
+        for (const item of invoice.products ?? []) {
+          if (item?.product_id || (item as { productId?: string } | null)?.productId) {
+            continue;
+          }
+
+          const qty = Number(item?.quantity);
+          if (Number.isNaN(qty) || qty <= 0) {
+            badRequest("Invalid product quantity");
+          }
+
+          const product = item?.name ? productsByName.get(item.name) : null;
+          if (!product) {
+            continue;
+          }
+
+          productQuantities.set(
+            product.id,
+            (productQuantities.get(product.id) ?? 0) + qty
+          );
+        }
       }
 
       const productIds = Array.from(productQuantities.keys());

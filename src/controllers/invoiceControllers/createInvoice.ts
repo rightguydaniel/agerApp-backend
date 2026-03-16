@@ -30,6 +30,7 @@ export const createInvoice = async (
     customer_id?: string;
     products?: Array<{
       product_id?: string;
+      productId?: string;
       name: string;
       quantity: number;
       price: number;
@@ -69,6 +70,11 @@ export const createInvoice = async (
       error.status = 400;
       throw error;
     };
+    const normalizedProducts =
+      products?.map((item) => ({
+        ...item,
+        product_id: item.product_id ?? item.productId,
+      })) ?? [];
 
     let invoice: Invoices | null = null;
     let subtotal = 0;
@@ -83,7 +89,7 @@ export const createInvoice = async (
 
     await database.transaction(async (transaction) => {
       const productQuantities = new Map<string, number>();
-      for (const item of products) {
+      for (const item of normalizedProducts) {
         if (!item?.product_id) {
           continue;
         }
@@ -163,7 +169,7 @@ export const createInvoice = async (
         unitPrice: number;
         lineTotal: number;
       }> = [];
-      for (const item of products) {
+      for (const item of normalizedProducts) {
         const qty = Number(item.quantity);
         if (Number.isNaN(qty) || qty <= 0) {
           badRequest("Invalid product quantity");
@@ -222,7 +228,7 @@ export const createInvoice = async (
             location: customer.location,
             email: customer.email,
           },
-          products,
+          products: normalizedProducts,
           tax: tax ?? null,
           total: totalCalculated,
           narration: narration ?? null,
