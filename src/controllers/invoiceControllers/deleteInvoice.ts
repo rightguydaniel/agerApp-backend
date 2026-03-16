@@ -33,11 +33,29 @@ export const deleteInvoice = async (
       throw error;
     };
 
+    const rawProducts = invoice.products;
+    const parsedProducts = (() => {
+      if (Array.isArray(rawProducts)) {
+        return rawProducts;
+      }
+
+      if (typeof rawProducts === "string") {
+        try {
+          const parsed = JSON.parse(rawProducts);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          badRequest("Invoice products payload is invalid");
+        }
+      }
+
+      return [];
+    })();
+
     await database.transaction(async (transaction) => {
       const productQuantities = new Map<string, number>();
       const productNames = new Set<string>();
 
-      for (const item of invoice.products ?? []) {
+      for (const item of parsedProducts) {
         const productId =
           item?.product_id ?? (item as { productId?: string } | null)?.productId;
 
@@ -70,7 +88,7 @@ export const deleteInvoice = async (
           dbProducts.map((product) => [product.name, product])
         );
 
-        for (const item of invoice.products ?? []) {
+        for (const item of parsedProducts) {
           if (item?.product_id || (item as { productId?: string } | null)?.productId) {
             continue;
           }
