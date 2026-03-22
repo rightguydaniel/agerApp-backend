@@ -1,3 +1,0 @@
-create a page on the frontend app where users can delete their account
-
-the page should have 

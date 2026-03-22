@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import sendResponse from "../../utils/http/sendResponse";
 import Tokens from "../../models/Tokens";
 import Users from "../../models/Users";
+import { sendWelcomeEmail } from "../../configs/email/emailConfig";
 
 export const verifyUser = async (request: Request, response: Response) => {
   const { email, otp } = request.body;
@@ -11,7 +12,25 @@ export const verifyUser = async (request: Request, response: Response) => {
       sendResponse(response, 400, "Incorrect OTP");
       return;
     }
+
+    const user = await Users.findOne({ where: { email } });
+    if (!user) {
+      sendResponse(response, 404, "Account with this email does not exist");
+      return;
+    }
+
     await Users.update({ isVerified: true }, { where: { email } });
+    await Tokens.destroy({ where: { email, token: otp } });
+
+    try {
+      await sendWelcomeEmail(email);
+    } catch (mailError: any) {
+      console.error(
+        "Verification succeeded but welcome email failed:",
+        mailError?.message ?? mailError
+      );
+    }
+
     sendResponse(response, 200, "OTP verified");
     return;
   } catch (error: any) {

@@ -8,6 +8,10 @@ import logger from "morgan";
 import { json, text, urlencoded } from "body-parser";
 import { database } from "./configs/database/database";
 import indexRoutes from "./routes/indexRoutes";
+import { startUnlockFeaturesEmailJob } from "./utils/services/unlockFeaturesEmailJob";
+import { startFeedbackEmailJob } from "./utils/services/feedbackEmailJob";
+import { startEfficiencyHackEmailJob } from "./utils/services/efficiencyHackEmailJob";
+import { startCommunityEmailJob } from "./utils/services/communityEmailJob";
 
 const app = express();
 
@@ -32,6 +36,10 @@ database
   .sync({})
   .then(() => {
     console.log("Database is connected");
+    startUnlockFeaturesEmailJob();
+    startFeedbackEmailJob();
+    startEfficiencyHackEmailJob();
+    startCommunityEmailJob();
   })
   .catch((err: HttpError) => {
     console.log(err);
