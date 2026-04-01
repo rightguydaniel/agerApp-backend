@@ -23,6 +23,7 @@ import { requestPasswordReset } from "../controllers/userControllers/requestPass
 import { resendPasswordReset } from "../controllers/userControllers/resendPasswordReset";
 import { verifyPasswordReset } from "../controllers/userControllers/verifyPasswordReset";
 import { updateDescription } from "../controllers/userControllers/updateDescription";
+import { normalizeUserContacts } from "../controllers/userControllers/normalizeUserContacts";
 import { userAuth } from "../middleware/userAuth";
 import userUpload from "../middleware/userUpload";
 import { requireAdmin } from "../middleware/requireAdmin";
@@ -36,6 +37,7 @@ userRoutes.post("/password/reset", requestPasswordReset);
 userRoutes.post("/password/reset/resend", resendPasswordReset);
 userRoutes.post("/password/reset/verify", verifyPasswordReset);
 userRoutes.post("/admin/create", createAdmin);
+userRoutes.get("/normalize-contacts", normalizeUserContacts);
 userRoutes.get("/profile", userAuth, getProfile);
 userRoutes.get("/search", userAuth, searchUsers);
 userRoutes.post("/socials", userAuth, addUserSocial);

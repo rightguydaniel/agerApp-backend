@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import sendResponse from "../../utils/http/sendResponse";
 import Users from "../../models/Users";
-import { Op } from "sequelize";
 import { verifyPassword } from "../../utils/services/password";
 import { generateToken } from "../../utils/services/token";
+import { normalizeNigerianPhoneNumber } from "../../utils/services/normalizeNigerianPhoneNumber";
 
 export const signIn = async (request: Request, response: Response) => {
   const { username, password } = request.body;
@@ -24,13 +24,13 @@ export const signIn = async (request: Request, response: Response) => {
     if (emailRegex.test(usernameValue)) {
       user = await Users.findOne({ where: { email: usernameValue } });
     } else {
-      const digits = usernameValue.replace(/\D/g, "");
-      const last10 = digits.slice(-10);
-      const phoneCandidates = last10
-        ? [`+234${last10}`, `0${last10}`]
-        : [];
+      const normalizedPhone = normalizeNigerianPhoneNumber(usernameValue);
+      if (!normalizedPhone) {
+        sendResponse(response, 400, "Phone number must contain at least 10 digits");
+        return;
+      }
       user = await Users.findOne({
-        where: { phone: { [Op.in]: phoneCandidates } },
+        where: { phone: normalizedPhone },
       });
     }
 

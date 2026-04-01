@@ -10,6 +10,7 @@ import DeletedAccounts from "../../models/DeletedAccounts";
 import { hashEmail } from "../../utils/services/hash";
 import { Op } from "sequelize";
 import UserSettings from "../../models/UserSettings";
+import { normalizeNigerianPhoneNumber } from "../../utils/services/normalizeNigerianPhoneNumber";
 
 export const signUp = async (request: Request, response: Response) => {
   const {
@@ -33,6 +34,16 @@ export const signUp = async (request: Request, response: Response) => {
       sendResponse(response, 400, "Invalid email format", null);
       return;
     }
+    const normalizedPhone = normalizeNigerianPhoneNumber(phone);
+    if (!normalizedPhone) {
+      sendResponse(
+        response,
+        400,
+        "Phone number must contain at least 10 digits",
+        null
+      );
+      return;
+    }
     const emailHash = hashEmail(email);
     const blockedRecord = await DeletedAccounts.findOne({
       where: {
@@ -50,7 +61,7 @@ export const signUp = async (request: Request, response: Response) => {
     }
     const existingUser = await Users.findOne({
       where: {
-        [Op.or]: [{ email }, { phone }],
+        [Op.or]: [{ email }, { phone: normalizedPhone }],
       },
     });
     if (existingUser) {
@@ -58,7 +69,7 @@ export const signUp = async (request: Request, response: Response) => {
         sendResponse(response, 409, "Email already exists", null);
         return;
       }
-      if (existingUser.phone === phone) {
+      if (existingUser.phone === normalizedPhone) {
         sendResponse(response, 409, "Phone already exists", null);
         return;
       }
@@ -67,8 +78,8 @@ export const signUp = async (request: Request, response: Response) => {
     const newUser = await Users.create({
       id: v4(),
       full_name: fullName,
-      email,
-      phone,
+      email: email.toLowerCase(),
+      phone: normalizedPhone,
       role: userRole.USER,
       country,
       state,
