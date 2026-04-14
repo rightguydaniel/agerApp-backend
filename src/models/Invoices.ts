@@ -6,7 +6,7 @@ export interface InvoiceCustomerSnapshot {
   name: string;
   phone_number: string;
   location: string;
-  email: string;
+  email?: string | null;
 }
 
 export interface InvoiceProductItem {
