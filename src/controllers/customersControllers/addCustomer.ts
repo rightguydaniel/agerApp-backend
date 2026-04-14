@@ -9,11 +9,11 @@ export const addCustomer = async (request: JwtPayload, response: Response) => {
     name?: string;
     phone_number?: string;
     location?: string;
-    email?: string;
+    email?: string | null;
   };
 
   try {
-    if (!name || !phone_number || !location || !email) {
+    if (!name || !phone_number || !location) {
       sendResponse(response, 400, "Missing fields");
       return;
     }
@@ -55,7 +55,6 @@ export const addCustomer = async (request: JwtPayload, response: Response) => {
  *               - name
  *               - phone_number
  *               - location
- *               - email
  *             properties:
  *               name:
  *                 type: string
@@ -69,6 +68,7 @@ export const addCustomer = async (request: JwtPayload, response: Response) => {
  *               email:
  *                 type: string
  *                 format: email
+ *                 nullable: true
  *                 example: john@example.com
  *     responses:
  *       200:
@@ -107,6 +107,7 @@ export const addCustomer = async (request: JwtPayload, response: Response) => {
  *                       example: Lagos
  *                     email:
  *                       type: string
+ *                       nullable: true
  *                       example: john@example.com
  *                     createdAt:
  *                       type: string

@@ -38,7 +38,7 @@ export const signIn = async (request: Request, response: Response) => {
       sendResponse(
         response,
         400,
-        `Account with ${usernameValue} dose not exist`
+        `Account with ${usernameValue} does not exist`
       );
       return;
     }

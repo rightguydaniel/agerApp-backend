@@ -8,10 +8,10 @@ export interface CustomersAttributes {
   name: string;
   phone_number: string;
   location: string;
-  email: string;
+  email?: string | null;
 }
 
-type CustomersCreationAttributes = Optional<CustomersAttributes, "id">;
+type CustomersCreationAttributes = Optional<CustomersAttributes, "id" | "email">;
 
 export class Customers
   extends Model<CustomersAttributes, CustomersCreationAttributes>
@@ -23,7 +23,7 @@ export class Customers
   public name!: string;
   public phone_number!: string;
   public location!: string;
-  public email!: string;
+  public email!: string | null;
 }
 
 Customers.init(
@@ -64,7 +64,7 @@ Customers.init(
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: {
         isEmail: true,
       },
