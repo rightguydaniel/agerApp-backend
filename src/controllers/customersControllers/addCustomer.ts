@@ -23,7 +23,7 @@ export const addCustomer = async (request: JwtPayload, response: Response) => {
       name,
       phone_number,
       location,
-      email,
+      email: email && email === "" ? null : email,
     });
 
     sendResponse(response, 200, "Customer added", customer);
