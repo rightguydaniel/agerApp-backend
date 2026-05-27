@@ -8,8 +8,10 @@ import { updateUser } from "../controllers/adminControllers/updateUser";
 import { blockUser } from "../controllers/adminControllers/blockUser";
 import { deleteUser } from "../controllers/adminControllers/deleteUser";
 import { getCommunities } from "../controllers/adminControllers/getCommunities";
+import { updateCommunity } from "../controllers/adminControllers/updateCommunity";
 import { deleteCommunity } from "../controllers/adminControllers/deleteCommunity";
 import { getProducts } from "../controllers/adminControllers/getProducts";
+import { updateProduct } from "../controllers/adminControllers/updateProduct";
 import { deleteProduct } from "../controllers/adminControllers/deleteProduct";
 
 const adminRoutes = Router();
@@ -30,10 +32,12 @@ adminRoutes.delete("/users/:id", deleteUser);
 
 // Community management
 adminRoutes.get("/communities", getCommunities);
+adminRoutes.put("/communities/:id", updateCommunity);
 adminRoutes.delete("/communities/:id", deleteCommunity);
 
 // Product management
 adminRoutes.get("/products", getProducts);
+adminRoutes.put("/products/:id", updateProduct);
 adminRoutes.delete("/products/:id", deleteProduct);
 
 export default adminRoutes;
