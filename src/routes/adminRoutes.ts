@@ -13,6 +13,11 @@ import { deleteCommunity } from "../controllers/adminControllers/deleteCommunity
 import { getProducts } from "../controllers/adminControllers/getProducts";
 import { updateProduct } from "../controllers/adminControllers/updateProduct";
 import { deleteProduct } from "../controllers/adminControllers/deleteProduct";
+import { createTestimonial } from "../controllers/adminControllers/createTestimonial";
+import { getAllTestimonials } from "../controllers/adminControllers/getAllTestimonials";
+import { updateTestimonial } from "../controllers/adminControllers/updateTestimonial";
+import { deleteTestimonial } from "../controllers/adminControllers/deleteTestimonial";
+import testimonialUpload from "../middleware/testimonialUpload";
 
 const adminRoutes = Router();
 
@@ -39,5 +44,19 @@ adminRoutes.delete("/communities/:id", deleteCommunity);
 adminRoutes.get("/products", getProducts);
 adminRoutes.put("/products/:id", updateProduct);
 adminRoutes.delete("/products/:id", deleteProduct);
+
+// Testimonial management
+adminRoutes.get("/testimonials", getAllTestimonials);
+adminRoutes.post(
+  "/testimonials",
+  testimonialUpload.single("image"),
+  createTestimonial,
+);
+adminRoutes.put(
+  "/testimonials/:id",
+  testimonialUpload.single("image"),
+  updateTestimonial,
+);
+adminRoutes.delete("/testimonials/:id", deleteTestimonial);
 
 export default adminRoutes;

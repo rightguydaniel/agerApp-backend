@@ -13,12 +13,14 @@ import invoiceRoutes from "./invoiceRoutes";
 import operationsRoutes from "./operationsRoutes";
 import analyticsRoutes from "./analyticsRoutes";
 import { setDefaultUserSettings } from "../controllers/userControllers/setDefaultUserSettings";
+import testimonialRoutes from "./testimonialRoutes";
 
 const indexRoutes = express.Router();
 indexRoutes.get("/", index);
 indexRoutes.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 indexRoutes.use("/users", userRoutes);
 indexRoutes.use("/blogs", blogRoutes);
+indexRoutes.use("/testimonials", testimonialRoutes);
 indexRoutes.use("/admin", adminRoutes);
 indexRoutes.use("/contact", contactRoutes);
 indexRoutes.use("/products", productsRoutes);
@@ -28,5 +30,5 @@ indexRoutes.use("/customers", customersRoutes);
 indexRoutes.use("/invoices", invoiceRoutes);
 indexRoutes.use("/operations", operationsRoutes);
 indexRoutes.use("/analytics", analyticsRoutes);
-indexRoutes.get("/settings/defaults", setDefaultUserSettings)
+indexRoutes.get("/settings/defaults", setDefaultUserSettings);
 export default indexRoutes;

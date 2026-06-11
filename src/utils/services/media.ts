@@ -71,6 +71,22 @@ export const buildUserImageUrl = (filename: string) => {
   return `${base}/${filename}`;
 };
 
+export const getTestimonialUploadsRootUrl = () => {
+  const baseUrl = process.env.API_URL || "";
+  if (!baseUrl) {
+    return "";
+  }
+  return `${normalizeBaseUrl(baseUrl)}/uploads/testimonials`;
+};
+
+export const buildTestimonialImageUrl = (filename: string) => {
+  const base = getTestimonialUploadsRootUrl();
+  if (!base) {
+    return `/uploads/testimonials/${filename}`;
+  }
+  return `${base}/${filename}`;
+};
+
 export const resolveLocalBlogImagePath = (fileUrl: string) => {
   const uploadsPath = path.join(__dirname, "../../../uploads/blogs");
   const parts = fileUrl.split("/");
@@ -94,6 +110,13 @@ export const resolveLocalProductImagePath = (fileUrl: string) => {
 
 export const resolveLocalUserImagePath = (fileUrl: string) => {
   const uploadsPath = path.join(__dirname, "../../../uploads/users");
+  const parts = fileUrl.split("/");
+  const filename = parts[parts.length - 1];
+  return path.join(uploadsPath, filename);
+};
+
+export const resolveLocalTestimonialImagePath = (fileUrl: string) => {
+  const uploadsPath = path.join(__dirname, "../../../uploads/testimonials");
   const parts = fileUrl.split("/");
   const filename = parts[parts.length - 1];
   return path.join(uploadsPath, filename);
