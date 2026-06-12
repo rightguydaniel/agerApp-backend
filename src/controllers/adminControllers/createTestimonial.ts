@@ -18,7 +18,8 @@ export const createTestimonial = async (
   response: Response,
 ) => {
   try {
-    const { name, company, image, testimonial, isVisible } = request.body as Record<string, any>;
+    const { name, company, image, testimonial, isVisible } =
+      request.body as Record<string, any>;
     const uploadedImage = request.file as Express.Multer.File | undefined;
 
     if (!name || !company || !testimonial) {
@@ -33,10 +34,11 @@ export const createTestimonial = async (
     const resolvedImage = uploadedImage
       ? buildTestimonialImageUrl(uploadedImage.filename)
       : typeof image === "string" && image.trim() !== ""
-      ? image.trim()
-      : null;
+        ? image.trim()
+        : null;
 
-    const isVisibleFlag = isVisible === undefined ? true : normalizeBoolean(isVisible);
+    const isVisibleFlag =
+      isVisible === undefined ? true : normalizeBoolean(isVisible);
 
     const createdTestimonial = await Testimonial.create({
       name,

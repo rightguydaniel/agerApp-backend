@@ -13,7 +13,8 @@ export const updateTestimonial = async (
 ) => {
   try {
     const { id } = request.params;
-    const { name, company, image, testimonial, isVisible } = request.body as Record<string, any>;
+    const { name, company, image, testimonial, isVisible } =
+      request.body as Record<string, any>;
     const uploadedImage = request.file as Express.Multer.File | undefined;
 
     const testimonialRecord = await Testimonial.findByPk(id);
@@ -27,17 +28,24 @@ export const updateTestimonial = async (
         return;
       }
 
-      const isHostedImage = !testimonialRecord.image.includes("/uploads/testimonials/");
+      const isHostedImage = !testimonialRecord.image.includes(
+        "/uploads/testimonials/",
+      );
       if (isHostedImage) {
         return;
       }
 
-      const existingPath = resolveLocalTestimonialImagePath(testimonialRecord.image);
+      const existingPath = resolveLocalTestimonialImagePath(
+        testimonialRecord.image,
+      );
       if (fs.existsSync(existingPath)) {
         try {
           fs.unlinkSync(existingPath);
         } catch (unlinkError) {
-          console.warn("Failed to remove existing testimonial image", unlinkError);
+          console.warn(
+            "Failed to remove existing testimonial image",
+            unlinkError,
+          );
         }
       }
     };
@@ -68,9 +76,10 @@ export const updateTestimonial = async (
       return Boolean(value);
     };
 
-    const updatedVisibility = isVisible !== undefined
-      ? normalizeBoolean(isVisible)
-      : testimonialRecord.isVisible;
+    const updatedVisibility =
+      isVisible !== undefined
+        ? normalizeBoolean(isVisible)
+        : testimonialRecord.isVisible;
 
     await testimonialRecord.update({
       name: name ?? testimonialRecord.name,

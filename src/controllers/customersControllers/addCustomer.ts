@@ -5,7 +5,7 @@ import Customers from "../../models/Customers";
 
 export const addCustomer = async (request: JwtPayload, response: Response) => {
   const userId = request.user.id;
-  const { name, phone_number, location, email } = request.body
+  const { name, phone_number, location, email } = request.body;
 
   try {
     if (!name || !phone_number || !location) {
@@ -18,7 +18,10 @@ export const addCustomer = async (request: JwtPayload, response: Response) => {
       name,
       phone_number,
       location,
-      email: email.length < 3 ? null : email,
+      email:
+        typeof email === "string" && email.trim().length >= 3
+          ? email.trim()
+          : null,
     });
 
     sendResponse(response, 200, "Customer added", customer);
